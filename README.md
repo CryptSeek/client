@@ -1,6 +1,6 @@
 # Client Server Initialization
 
-Be sure to do the following in the electron-client-server directory locally (To big for GitHub)
+Be sure to do the following in the electron-client-server directory locally (To big for GitHub)\
 Commands (I did this via WSL):
 
 ### Install Dependencies (Might not be all, these are the ones I needed):
@@ -50,6 +50,6 @@ Commands (I did this via WSL):
 ``` 
 (A message in the window will appear showing that the two servers were in contact)
 
-index.html (HTML Page for Client-Server)
-server.js (CHANGE TO ZEROMQ)
+index.html (HTML Page for Client-Server)\
+server.js (CHANGE TO ZEROMQ)\
 client.js (Client-server)
