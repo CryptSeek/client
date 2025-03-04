@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Electron Client</title>
+    </head>
+    <body>
+        <h1>Electron Client</h1>
+        <input id="message" type="text" placeholder="Enter a message">
+        <button onclick="sendMessage()">Send</button>
+        <p id="response"></p>
+
+        <script>
+        const { ipcRenderer } = require("electron");
+
+        async function sendMessage() {
+            const message = document.getElementById("message").value;
+            const response = await ipcRenderer.invoke("send-message", message);
+            document.getElementById("response").innerText = "Server response: " + response;
+        }
+    </script>
+    </body>
+</html>
