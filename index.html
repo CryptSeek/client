@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CryptSeek</title>
+    </head>
+    <body>
+        <h1>CryptSeek</h1>
+        <label for="bouncer-address">Bouncer Address:</label>
+        <input type="text" id="bouncer-address" value="http://cryptseek.wycre.net:9090/upload"> <br>
+
+        <label for="gateway-address">Gateway Address (does nothing right now):</label>
+        <input type="text" id="gateway-address" value="tcp://cryptseek.wycre.net:5555"> <br>
+
+        <label for="message">Send Test Message:</label>
+        <input id="message" type="text" placeholder="Enter a message">
+        <button onclick="sendMessage()">Send</button>
+
+        <h2>Log of data received from Gateway:</h2>
+        <p id="response"></p>
+
+        <script>
+        const { ipcRenderer } = require("electron");
+        const { zmq } = require("zeromq")
+
+        const resArea = document.querySelector("#response");
+
+        // This function sends messages to the bouncer
+        // TODO implement encryption handling, etc
+        async function sendMessage() {
+            const bouncerAddress = document.querySelector("#bouncer-address").value;
+
+            const message = document.getElementById("message").value;
+
+            const response = fetch(bouncerAddress, {method: "POST", body: message});
+            // TODO add error checking
+        }
+
+        // Puts new messages up in the response area
+        ipcRenderer.on("message-received", (event, message) => {
+            resArea.innerText = resArea.innerText + "\n" + message['data'];
+            console.log(message);
+        });
+
+    </script>
+    </body>
+</html>
