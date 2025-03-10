@@ -35,5 +35,5 @@ app.whenReady().then(() => {
             contextIsolation: false
         }
     });
-    mainWindow.loadFile("index.html");
+    mainWindow.loadFile("client-pages/index.html");
 });

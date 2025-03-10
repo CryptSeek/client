@@ -14,7 +14,11 @@
         <label for="gateway-address">Gateway Address (does nothing right now):</label>
         <input type="text" id="gateway-address" value="tcp://cryptseek.wycre.net:5555"> <br>
 
-        <label for="message">Send Test Message:</label>
+        <h3>Send Test Message</h3>
+        <label for="recipient">Recipient:</label>
+        <input type="text" id="recipient" placeholder="Username of recipient"> <br>
+
+        <label for="message">Message Content:</label>
         <input id="message" type="text" placeholder="Enter a message">
         <button onclick="sendMessage()">Send</button>
 
@@ -32,7 +36,10 @@
         async function sendMessage() {
             const bouncerAddress = document.querySelector("#bouncer-address").value;
 
-            const message = document.getElementById("message").value;
+            const recipient = document.querySelector("#recipient").value;
+            const content = document.getElementById("message").value;
+
+            const message = `{"recipient": "${recipient}", "message": "${content}"}`;
 
             const response = fetch(bouncerAddress, {method: "POST", body: message});
             // TODO add error checking
@@ -40,8 +47,13 @@
 
         // Puts new messages up in the response area
         ipcRenderer.on("message-received", (event, message) => {
-            resArea.innerText = resArea.innerText + "\n" + message['data'];
-            console.log(message);
+            const obj = JSON.parse(message['data']);
+            const recipient = obj['recipient'];
+            const content = obj['message'];
+
+            resArea.innerText = resArea.innerText + "\nTO: " + recipient + " - " + content;
+
+            console.log(obj);
         });
 
     </script>

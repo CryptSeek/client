@@ -4,11 +4,12 @@
   "description": "Be sure to do the following in the electron-client-server directory locally (To big for GitHub)\\ Commands (I did this via WSL):",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "electron ."
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "electron": "^35.0.0",
     "zeromq": "^6.3.0"
