@@ -5,11 +5,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>CryptSeek</title>
+
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <nav class="top-nav">
             <a class="top-nav-item active-top-nav" href="index.html">Home</a>
             <a class="top-nav-item" href="settings.html">Settings</a>
+        </nav>
+
+        <nav class="side-nav" id="user-list">
+            <ul>
+                <li><a class="side-nav-item" href="#johndoe">johndoe</a></li>
+                <li><a class="side-nav-item" href="#janedoe">janedoe</a></li>
+            </ul>
         </nav>
 
         <h3>Send Test Message</h3>
@@ -21,18 +30,64 @@
         <button onclick="sendMessage()">Send</button>
 
         <h2>Log of data received from Gateway:</h2>
-        <p id="response"></p>
+        <div id="message-log">
+            <!-- Generate areas based on received message senders -->
+            <div id="johndoe" class="user-log">
+                <h3>johndoe</h3>
+                <ul class="message-log">
+                    <li>Test static message</li>
+                </ul>
+            </div>
+            <div id="janedoe" class="user-log">
+                <h3>janedoe</h3>
+                <ul class="message-log">
+                    <li>Test static message</li>
+                </ul>
+            </div>
+        </div>
 
         <script>
         const { ipcRenderer } = require("electron");
         const { zmq } = require("zeromq")
         const Store = require('electron-store');
 
-        const resArea = document.querySelector("#response");
+        // DOM objects for showing messages
+        const logArea = document.getElementById('message-log');
+        const userList = document.getElementById('user-list').children[0];
 
         const store = new Store();
         const bouncerAddress = store.get('bouncerAddress');
         const gatewayAddress = store.get('gatewayAddress');
+        const username = store.get('username');
+
+        function receiveMessage(sender, message) {
+            // Check if logarea already contains a div for member
+            let existingConvoFound = false;
+            let targetElem;
+            Array.from(logArea.children).forEach((elem) => {
+                if (elem.id === sender) {
+                    existingConvoFound = true;
+                    targetElem = elem;
+                }
+            })
+            if (!existingConvoFound) {
+                // make a new conversation element
+                let newUser = document.createElement('div');
+                newUser.id = sender;
+                newUser.classList.add('user-log');
+                newUser.innerHTML = "<h3>" + sender + "</h3><ul class='message-log'></ul>";
+                targetElem = newUser;
+                logArea.appendChild(newUser);
+
+                let userLink = document.createElement('li');
+                userLink.innerHTML = `<a class="side-nav-item" href="#${sender}">${sender}</a>`;
+                userList.appendChild(userLink);
+            }
+
+            let newMessage = document.createElement('li');
+            newMessage.innerText = message;
+            targetElem.children[1].appendChild(newMessage);
+        }
 
         // This function sends messages to the bouncer
         // TODO implement encryption handling, etc
@@ -40,7 +95,7 @@
             const recipient = document.querySelector("#recipient").value;
             const content = document.getElementById("message").value;
 
-            const message = `{"recipient": "${recipient}", "message": "${content}"}`;
+            const message = `{"sender": "${username}","recipient": "${recipient}", "message": "${content}"}`;
 
             const response = fetch(bouncerAddress, {method: "POST", body: message});
             // TODO add error checking
@@ -49,10 +104,13 @@
         // Puts new messages up in the response area
         ipcRenderer.on("message-received", (event, message) => {
             const obj = JSON.parse(message['data']);
+            const sender = obj['sender'];
             const recipient = obj['recipient'];
             const content = obj['message'];
 
-            resArea.innerText = resArea.innerText + "\nTO: " + recipient + " - " + content;
+            receiveMessage(sender, content)
+
+            //resArea.innerText = resArea.innerText + "\nTO: " + recipient + " - " + content;
 
             console.log(obj);
         });

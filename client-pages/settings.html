@@ -18,6 +18,9 @@
     <input type="text" id="gateway-address" value=""> <br>
     <p><sup>* If you don't receive messages, make sure your gateway address is correct.</sup></p>
 
+    <label for="username">Username:</label>
+    <input type="text" id="username" value=""> <br>
+
     <button id="save" class="btn btn-primary">Save Settings</button>
 
     <script>
@@ -26,19 +29,23 @@
 
         const bouncerAddress = document.getElementById('bouncer-address');
         const gatewayAddress = document.getElementById('gateway-address');
+        const username = document.getElementById('username');
         const saveBtn = document.getElementById('save');
 
         const store = new Store();
         bouncerAddress.value = store.get('bouncerAddress');
         gatewayAddress.value = store.get('gatewayAddress');
+        username.value = store.get('username');
 
 
         saveBtn.addEventListener('click', () => {
             let bAddr = bouncerAddress.value;
             let gAddr = gatewayAddress.value;
+            let newUsername = username.value;
 
             store.set('bouncerAddress', bAddr);
             store.set('gatewayAddress', gAddr);
+            store.set('username', newUsername);
 
             ipcRenderer.send('settings-saved', "saved");
             window.location.reload();
