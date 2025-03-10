@@ -47,8 +47,9 @@
             store.set('gatewayAddress', gAddr);
             store.set('username', newUsername);
 
+
             ipcRenderer.send('settings-saved', "saved");
-            window.location.reload();
+            //window.location.reload();
         });
     </script>
 

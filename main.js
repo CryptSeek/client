@@ -10,7 +10,18 @@ function handleMessageReceived(event, message) {
 }
 
 function restartSubscriber(event, data) {
-    subscriberWindow.webContents.reloadIgnoringCache();
+    subscriberWindow.webContents.reload();
+
+    // I don't know why it has to be this way,
+    // It really shouldn't be this way
+    // So why on gods green earth am I required to do this horribleness?!?!?!?  - wycre
+    setTimeout( () => {subscriberWindow.webContents.reload();}, 100); // 100 works on my machine
+
+}
+
+// The index will request the data path sometimes
+function getPath(event) {
+    mainWindow.webContents.send('path-relay', {data: app.getPath("userData")});
 }
 
 // Start app
@@ -29,6 +40,7 @@ app.whenReady().then(() => {
     // Register event listener for message reception
     ipcMain.on('message-received', handleMessageReceived)
     ipcMain.on('settings-saved', restartSubscriber);
+    ipcMain.on('get-path', getPath);
 
     // Create subscriber window
     subscriberWindow = new BrowserWindow({
