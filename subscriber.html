@@ -8,11 +8,18 @@
     <script>
         const zmq= require("zeromq");
         const { ipcRenderer } = require("electron");
+        const Store = require('electron-store');
+
+        const store = new Store();
+        const bouncerAddress = store.get('bouncerAddress');
+        const gatewayAddress = store.get('gatewayAddress');
 
         async function run() {
-            const sock = new zmq.Subscriber()
+            const sock = new zmq.Subscriber();
 
-            sock.connect("tcp://cryptseek.wycre.net:5555")
+            console.log('addr:' + gatewayAddress);
+
+            sock.connect(gatewayAddress);
             sock.subscribe("")
             console.log("Subscriber connected")
 

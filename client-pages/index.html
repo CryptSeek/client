@@ -7,12 +7,10 @@
         <title>CryptSeek</title>
     </head>
     <body>
-        <h1>CryptSeek</h1>
-        <label for="bouncer-address">Bouncer Address:</label>
-        <input type="text" id="bouncer-address" value="http://cryptseek.wycre.net:9090/upload"> <br>
-
-        <label for="gateway-address">Gateway Address (does nothing right now):</label>
-        <input type="text" id="gateway-address" value="tcp://cryptseek.wycre.net:5555"> <br>
+        <nav class="top-nav">
+            <a class="top-nav-item active-top-nav" href="index.html">Home</a>
+            <a class="top-nav-item" href="settings.html">Settings</a>
+        </nav>
 
         <h3>Send Test Message</h3>
         <label for="recipient">Recipient:</label>
@@ -28,14 +26,17 @@
         <script>
         const { ipcRenderer } = require("electron");
         const { zmq } = require("zeromq")
+        const Store = require('electron-store');
 
         const resArea = document.querySelector("#response");
+
+        const store = new Store();
+        const bouncerAddress = store.get('bouncerAddress');
+        const gatewayAddress = store.get('gatewayAddress');
 
         // This function sends messages to the bouncer
         // TODO implement encryption handling, etc
         async function sendMessage() {
-            const bouncerAddress = document.querySelector("#bouncer-address").value;
-
             const recipient = document.querySelector("#recipient").value;
             const content = document.getElementById("message").value;
 

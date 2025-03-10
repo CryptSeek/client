@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "cryptceek-client",
   "version": "1.0.0",
   "description": "Be sure to do the following in the electron-client-server directory locally (To big for GitHub)\\ Commands (I did this via WSL):",
   "main": "main.js",
@@ -12,6 +12,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "electron": "^35.0.0",
+    "electron-store": "^8.2.0",
     "zeromq": "^6.3.0"
   }
 }
