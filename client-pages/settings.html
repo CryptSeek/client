@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CryptSeek</title>
+</head>
+<body>
+    <nav class="top-nav">
+        <a class="top-nav-item" href="index.html">Home</a>
+        <a class="top-nav-item active-top-nav" href="settings.html">Settings</a>
+    </nav>
+
+    <h1>Settings</h1>
+    <label for="bouncer-address">Bouncer Address:</label>
+    <input type="text" id="bouncer-address" value=""> <br>
+
+    <label for="gateway-address">Gateway Address:</label>
+    <input type="text" id="gateway-address" value=""> <br>
+    <p><sup>* If you don't receive messages, make sure your gateway address is correct.</sup></p>
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" value=""> <br>
+
+    <button id="save" class="btn btn-primary">Save Settings</button>
+
+    <script>
+        const Store = require('electron-store');
+        const { ipcRenderer } = require("electron");
+
+        const bouncerAddress = document.getElementById('bouncer-address');
+        const gatewayAddress = document.getElementById('gateway-address');
+        const username = document.getElementById('username');
+        const saveBtn = document.getElementById('save');
+
+        const store = new Store();
+        bouncerAddress.value = store.get('bouncerAddress');
+        gatewayAddress.value = store.get('gatewayAddress');
+        username.value = store.get('username');
+
+
+        saveBtn.addEventListener('click', () => {
+            let bAddr = bouncerAddress.value;
+            let gAddr = gatewayAddress.value;
+            let newUsername = username.value;
+
+            store.set('bouncerAddress', bAddr);
+            store.set('gatewayAddress', gAddr);
+            store.set('username', newUsername);
+
+
+            ipcRenderer.send('settings-saved', "saved");
+            //window.location.reload();
+        });
+    </script>
+
+</body>
+</html>
