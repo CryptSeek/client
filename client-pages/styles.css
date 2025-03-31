@@ -66,3 +66,8 @@ html, body {
     margin: 0%;
     padding: 20px;
 }
+
+.btn-warning {
+    background: #DD1111 !important;
+    color: white;
+}
