@@ -67,7 +67,34 @@ html, body {
     padding: 20px;
 }
 
+
+
+/* Form Elements */
+.btn {
+    padding: 1em;
+    color: white;
+    background-color: #555;
+    border: 2px solid #555;
+    border-radius: 15px;
+}
+
+.btn:hover {
+    border: 2px solid lime;
+}
+
+.btn-primary {
+
+}
+
 .btn-warning {
     background: #DD1111 !important;
+    border: 2px solid #DD1111;
     color: white;
+}
+
+input {
+    padding: 0.5em;
+    border-radius: 15px;
+    min-width: 20em;
+    font-size: 1em;
 }
