@@ -1,15 +1,20 @@
-/* ETC styles */
+/* Message hiding behavior */
 .user-log {
     display: none;
 }
 .user-log:target {
     display: block;
+    /* flex-direction: column; */
+    /* justify-content: space-between; */
+    /* flex-wrap: wrap; */
+    align-content: stretch;
 }
 
 /* styles */
-
 body {
     background-color: #222;
+    font-family: sans-serif;
+    color: white;
 }
 
 html, body {
@@ -26,9 +31,13 @@ html, body {
     padding: 20px;
 }
 
+.body-flex {
+    display: flex;
+    flex-direction: row;
+}
+
 .main-content {
-    margin-left: 290px;
-    padding: 20px;
+    flex-grow: 1;
 }
 
 .sidebar {
@@ -38,13 +47,17 @@ html, body {
     left: 0;
     overflow-y: auto;
     padding: 20px;
-    position: fixed;
     top: 0;
     width: 250px;
+    height: 95.6vh;
+}
+
+#user-list > p > p {
+    margin: 5px 0 5px 0;
 }
 
 .side-nav-item {
-    background-color: lime;
+    background-color: #555;
     border-radius: 10px;
     color: white;
     padding: 10px;
@@ -97,4 +110,59 @@ input {
     border-radius: 15px;
     min-width: 20em;
     font-size: 1em;
+}
+
+
+
+/* Message Area */
+#message-log {
+    margin: 0 10px;
+}
+
+.user-log > h3 {
+    font-family: sans-serif;
+    margin-bottom: 0;
+}
+.user-log > h3 > span {
+    font-family: monospace;
+}
+
+.message-log {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0;
+    height: 65vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.message-log > li {
+    list-style-type: none;
+    padding: 5px;
+    padding-top: 10px;
+    font-size: 1em;
+    margin: 2px;
+}
+
+.message-log > li:hover {
+    background-color: #444;
+}
+
+.message-log > .own-message {
+    text-align: right;
+}
+
+#message-input-area {
+    background-color: #444;
+    width: 100%;
+    /* bottom: 1em; */
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
+#message-input-area > input {
+    flex-grow: 1;
+    margin-right: 5px;
 }

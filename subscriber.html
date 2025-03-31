@@ -39,7 +39,7 @@
 
         async function validateRecipient(message) {
             let obj = JSON.parse(message.toString());
-            return obj['recipient'] === username;
+            return obj['recipient'] === username || obj['sender'] === username;
         }
 
         run();
