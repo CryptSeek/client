@@ -15,7 +15,7 @@ function restartSubscriber(event, data) {
     // I don't know why it has to be this way,
     // It really shouldn't be this way
     // So why on gods green earth am I required to do this horribleness?!?!?!?  - wycre
-    setTimeout( () => {subscriberWindow.webContents.reload();}, 100); // 100 works on my machine
+    setTimeout( () => {subscriberWindow.webContents.reload();}, 250); // 100 works on my machine
 
 }
 
