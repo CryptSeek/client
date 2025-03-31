@@ -1,29 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>CryptSeek</title>
-</head>
-<body>
-    <nav class="top-nav">
-        <a class="top-nav-item" href="index.html">Home</a>
-        <a class="top-nav-item active-top-nav" href="settings.html">Settings</a>
-    </nav>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CryptSeek</title>
+        <link rel="stylesheet" href="./styles.css">
+    </head>
+    <body>
+        <div class="settings">
+            <!-- Navbar -->
+            <nav class="top-nav">
+                <img src="./logo.png" style="width: 200px; text-align: left;"
+                    alt="CryptSeek Logo">
+                <div style="text-align: right;">
+                    <a class="top-nav-item" href="index.html">Home</a>
+                </div>
+            </nav>
 
-    <h1>Settings</h1>
-    <label for="bouncer-address">Bouncer Address:</label>
-    <input type="text" id="bouncer-address" value=""> <br>
+            <!-- Settings Box -->
+            <div class="info-box">
+                <h2 style="margin: 5px 0px 15px 0px; text-align: center;">Settings</h2>
+                <h3>Address Settings</h3>
+                <label for="bouncer-address">Bouncer Address:</label>
+                <input type="text" id="bouncer-address" value>
+                <p></p>
+                <label for="gateway-address">Gateway Address:</label>
+                <input type="text" id="gateway-address" value>
+                <p>
+                    <sup>* If you don't receive messages, make sure your gateway
+                        address is correct.
+                    </sup>
+                </p>
+                <h3 style="margin-top: 40px;">Account Settings</h3>
+                <label for="username">Username:</label>
+                <input type="text" id="username" value>
+                <p></p>
+                <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
+            </div>
+        </div>
 
-    <label for="gateway-address">Gateway Address:</label>
-    <input type="text" id="gateway-address" value=""> <br>
-    <p><sup>* If you don't receive messages, make sure your gateway address is correct.</sup></p>
-
-    <label for="username">Username:</label>
-    <input type="text" id="username" value=""> <br>
-
-    <button id="save" class="btn btn-primary">Save Settings</button>
-
-    <script>
+        <script>
         const Store = require('electron-store');
         const { ipcRenderer } = require("electron");
 
@@ -53,5 +69,5 @@
         });
     </script>
 
-</body>
+    </body>
 </html>

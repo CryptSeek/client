@@ -1,6 +1,0 @@
-.user-log {
-    display: none;
-}
-.user-log:target {
-    display: block;
-}

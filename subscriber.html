@@ -13,6 +13,7 @@
         const store = new Store();
         const bouncerAddress = store.get('bouncerAddress');
         const gatewayAddress = store.get('gatewayAddress');
+        const username = store.get('username');
 
         async function run() {
             const sock = new zmq.Subscriber();
@@ -24,9 +25,21 @@
             console.log("Subscriber connected")
 
             for await (const [message] of sock) {
-                console.log(message.toString())
-                ipcRenderer.send('message-received', message.toString())
+                handleIncoming(message);
             }
+        }
+
+        async function handleIncoming(message) {
+            console.log(message.toString());
+            if (await validateRecipient(message)) {
+                ipcRenderer.send('message-received', message.toString());
+            }
+            console.log("Message not intended for recipient");
+        }
+
+        async function validateRecipient(message) {
+            let obj = JSON.parse(message.toString());
+            return obj['recipient'] === username;
         }
 
         run();
