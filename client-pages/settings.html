@@ -36,37 +36,66 @@
                 <input type="text" id="username" value>
                 <p></p>
                 <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
+
+                <button id="del-messages" class="btn btn-warning" style="margin-top: 40px;">Delete Saved Messages</button>
             </div>
         </div>
 
         <script>
-        const Store = require('electron-store');
-        const { ipcRenderer } = require("electron");
+            const Store = require('electron-store');
+            const { ipcRenderer } = require("electron");
+            const fs = require('fs');
 
-        const bouncerAddress = document.getElementById('bouncer-address');
-        const gatewayAddress = document.getElementById('gateway-address');
-        const username = document.getElementById('username');
-        const saveBtn = document.getElementById('save');
+            const bouncerAddress = document.getElementById('bouncer-address');
+            const gatewayAddress = document.getElementById('gateway-address');
+            const username = document.getElementById('username');
+            const saveBtn = document.getElementById('save');
+            const delMessages = document.getElementById('del-messages');
 
-        const store = new Store();
-        bouncerAddress.value = store.get('bouncerAddress');
-        gatewayAddress.value = store.get('gatewayAddress');
-        username.value = store.get('username');
-
-
-        saveBtn.addEventListener('click', () => {
-            let bAddr = bouncerAddress.value;
-            let gAddr = gatewayAddress.value;
-            let newUsername = username.value;
-
-            store.set('bouncerAddress', bAddr);
-            store.set('gatewayAddress', gAddr);
-            store.set('username', newUsername);
+            const store = new Store();
+            bouncerAddress.value = store.get('bouncerAddress');
+            gatewayAddress.value = store.get('gatewayAddress');
+            username.value = store.get('username');
 
 
-            ipcRenderer.send('settings-saved', "saved");
-            //window.location.reload();
-        });
+            saveBtn.addEventListener('click', () => {
+                let bAddr = bouncerAddress.value;
+                let gAddr = gatewayAddress.value;
+                let newUsername = username.value;
+
+                store.set('bouncerAddress', bAddr);
+                store.set('gatewayAddress', gAddr);
+                store.set('username', newUsername);
+
+
+                ipcRenderer.send('settings-saved', "saved");
+                //window.location.reload();
+            });
+
+
+
+            // Persistent File handling
+            let dataPath = '';
+            ipcRenderer.on('path-relay', (event, data) => {
+                dataPath = data['data'];
+                loadStoredMessages();
+            });
+
+            if (dataPath === '') {
+                ipcRenderer.send('get-path');
+            }
+
+            delMessages.addEventListener('click', () => {
+
+                if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
+                    fs.truncate(`${dataPath}/messages.jsonl`, 0, (err) => {
+                        if (err) {
+                            console.log('error', err);
+                        }
+                    });
+                }
+            });
+
     </script>
 
     </body>
