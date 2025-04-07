@@ -15,7 +15,6 @@ let tray = null;
 // Relays messages from the subscriber to the main window
 function handleMessageReceived(event, message) {
     console.log(message);
-    const obj = JSON.parse(message);
     // Write message to data file
     fs.appendFile(`${app.getPath("userData")}/messages.jsonl`, `${message}\n`, (err) => {
         if (err) {
@@ -102,5 +101,7 @@ app.whenReady().then(() => {
             contextIsolation: false
         }
     });
+    mainWindow.setMenu(null);
+    mainWindow.webContents.openDevTools();
     mainWindow.loadFile("client-pages/index.html");
 });
