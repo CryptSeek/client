@@ -3,11 +3,10 @@
     display: none;
 }
 .user-log:target {
-    display: block;
-    /* flex-direction: column; */
-    /* justify-content: space-between; */
-    /* flex-wrap: wrap; */
-    align-content: stretch;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* styles */
@@ -32,24 +31,24 @@ html, body {
 }
 
 .body-flex {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    height: 100vh;
+    grid-gap: 0;
+    justify-items: stretch;
+    grid-template-columns: [sidebar] 290px [content] auto;
 }
 
-.main-content {
-    flex-grow: 1;
-}
+.main-content {grid-column-start: 2;grid-row-start: 1;grid-row-end: 1;display: grid;grid-template-rows: [top] 77px [content] minmax(0, 1fr) [input] 50px;height: 100vh;/* overflow: hidden; */}
 
 .sidebar {
     background: #444;
     color: white;
-    height: 100%;
-    left: 0;
     overflow-y: auto;
     padding: 20px;
-    top: 0;
     width: 250px;
-    height: 95.6vh;
+    grid-column-start: 1;
+    grid-row-start: 1;
+    grid-row-end: 1;
 }
 
 #user-list > p > p {
@@ -117,6 +116,7 @@ input {
 /* Message Area */
 #message-log {
     margin: 0 10px;
+    height: 100%;
 }
 
 .user-log > h3 {
@@ -129,12 +129,14 @@ input {
 
 .message-log {
     padding-left: 10px;
+    flex: 1;
     padding-right: 10px;
     margin: 0;
-    height: 65vh;
-    overflow: auto;
+    max-height: 100%;
+    overflow-y: auto;
     display: flex;
     flex-direction: column-reverse;
+    min-height: 0;
 }
 
 .message-log > li {
@@ -156,7 +158,6 @@ input {
 #message-input-area {
     background-color: #444;
     width: 100%;
-    /* bottom: 1em; */
     display: flex;
     flex-direction: row;
     position: relative;
@@ -165,4 +166,9 @@ input {
 #message-input-area > input {
     flex-grow: 1;
     margin-right: 5px;
+}
+
+.message-content-area {
+    height: 100%;
+    overflow: hidden;
 }

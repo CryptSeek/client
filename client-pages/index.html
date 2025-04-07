@@ -205,6 +205,11 @@
             else {
                 convo.children[1].appendChild(newMessage);
             }
+
+            // Adjust scroll if currently targeting the convo
+            if (location.href.split('#')[1] === convo.id) {
+                convo.children[1].scrollTop = convo.children[1].scrollHeight;
+            }
         }
 
         // Puts new messages up in the response area
