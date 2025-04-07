@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
 const Store = require("electron-store");
+const fs = require('fs');
 
 //////////////////
 // Global variables
@@ -13,6 +14,15 @@ let tray = null;
 
 // Relays messages from the subscriber to the main window
 function handleMessageReceived(event, message) {
+    console.log(message);
+    const obj = JSON.parse(message);
+    // Write message to data file
+    fs.appendFile(`${app.getPath("userData")}/messages.jsonl`, `${message}\n`, (err) => {
+        if (err) {
+            console.log('error', err);
+        }
+    });
+
     mainWindow.webContents.send('message-received', {data: message});
 }
 

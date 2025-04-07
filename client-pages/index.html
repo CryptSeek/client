@@ -212,13 +212,6 @@
             const recipient = obj['recipient'];
             const content = obj['message'];
 
-            // Write message to data file
-            fs.appendFile(`${dataPath}/messages.jsonl`, `${message['data']}\n`, (err) => {
-                if (err) {
-                    console.log('error', err);
-                }
-            });
-
             receiveMessage(sender, recipient, content)
 
             console.log(obj);
