@@ -32,20 +32,22 @@
                     </div>
                 </nav>
 
-                <!-- Send Message Box -->
-                <div class="info-box">
-                    <h3 style="margin: 5px 0px 15px 0px; text-align: center;">Debug Field Area</h3>
-                    <label for="recipient">Recipient: </label>
-                    <input type="text" id="recipient"
-                        placeholder="Username of recipient">
-                </div>
+                <div class="message-content-area">
+                    <!-- Debug Box -->
+                    <div class="info-box">
+                        <h3 style="margin: 5px 0 15px 0; text-align: center;">Debug Field Area</h3>
+                        <label for="recipient">Recipient: </label>
+                        <input type="text" id="recipient"
+                            placeholder="Username of recipient">
+                    </div>
 
-                <div id="message-log">
-                    <!-- Generate areas based on received message senders -->
+                    <div id="message-log">
+                        <!-- Generate areas based on received message senders -->
+                    </div>
                 </div>
 
                 <div id="message-input-area">
-                    <input id="message" type="text" placeholder="Enter a message">
+                    <label for="message"></label><input id="message" type="text" placeholder="Enter a message">
                     <button id="send-message-button" class="btn btn-primary" onclick="sendMessage()">Send</button>
                 </div>
 
@@ -203,6 +205,11 @@
             else {
                 convo.children[1].appendChild(newMessage);
             }
+
+            // Adjust scroll if currently targeting the convo
+            if (location.href.split('#')[1] === convo.id) {
+                convo.children[1].scrollTop = convo.children[1].scrollHeight;
+            }
         }
 
         // Puts new messages up in the response area
@@ -211,13 +218,6 @@
             const sender = obj['sender'];
             const recipient = obj['recipient'];
             const content = obj['message'];
-
-            // Write message to data file
-            fs.appendFile(`${dataPath}/messages.jsonl`, `${message['data']}\n`, (err) => {
-                if (err) {
-                    console.log('error', err);
-                }
-            });
 
             receiveMessage(sender, recipient, content)
 

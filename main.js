@@ -1,14 +1,31 @@
-// requires the electron module
-const { app, BrowserWindow, ipcMain } = require("electron");
-
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
 const Store = require("electron-store");
+const fs = require('fs');
 
+//////////////////
+// Global variables
+//////////////////
 let mainWindow, subscriberWindow;
+let tray = null;
 
+//////////////////
+// IPC event message handlers
+//////////////////
+
+// Relays messages from the subscriber to the main window
 function handleMessageReceived(event, message) {
+    console.log(message);
+    // Write message to data file
+    fs.appendFile(`${app.getPath("userData")}/messages.jsonl`, `${message}\n`, (err) => {
+        if (err) {
+            console.log('error', err);
+        }
+    });
+
     mainWindow.webContents.send('message-received', {data: message});
 }
 
+// Restarts the subscriber window (to accept new settings)
 function restartSubscriber(event, data) {
     subscriberWindow.webContents.reload();
 
@@ -19,12 +36,14 @@ function restartSubscriber(event, data) {
 
 }
 
-// The index will request the data path sometimes
+// Tells the data path to the main window
 function getPath(event) {
     mainWindow.webContents.send('path-relay', {data: app.getPath("userData")});
 }
 
+//////////////////
 // Start app
+//////////////////
 app.whenReady().then(() => {
     Store.initRenderer();
 
@@ -37,6 +56,23 @@ app.whenReady().then(() => {
 
     console.log(app.getPath('userData'));
 
+    // Initialize system tray
+    tray = new Tray('tray-logo.png');
+    const contextMenu = Menu.buildFromTemplate([
+        { label: 'CryptSeek is running' },
+        { label: 'Options', type: 'separator' },
+        { label: 'Stop CryptSeek', type: 'normal', click: () => {
+                subscriberWindow.close();
+                if (!mainWindow?.isDestroyed() && mainWindow?.isFocusable()) { mainWindow.close(); }
+            }
+        },
+    ]);
+    tray.setToolTip('CryptSeek');
+    tray.setContextMenu(contextMenu);
+
+
+
+
     // Register event listener for message reception
     ipcMain.on('message-received', handleMessageReceived)
     ipcMain.on('settings-saved', restartSubscriber);
@@ -44,14 +80,14 @@ app.whenReady().then(() => {
 
     // Create subscriber window
     subscriberWindow = new BrowserWindow({
-        show: true,
+        show: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     });
 
-    subscriberWindow.webContents.openDevTools();
+    //subscriberWindow.webContents.openDevTools();
     subscriberWindow.loadFile("subscriber.html");
 
 
@@ -65,5 +101,7 @@ app.whenReady().then(() => {
             contextIsolation: false
         }
     });
+    mainWindow.setMenu(null);
+    mainWindow.webContents.openDevTools();
     mainWindow.loadFile("client-pages/index.html");
 });
