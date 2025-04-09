@@ -24,6 +24,7 @@
             <nav class="top-nav">
                 <img src="./logo.png" style="width: 200px; text-align: left;"
                      alt="CryptSeek Logo">
+                <h1>Your Friends</h1>
                 <div style="text-align: right;">
                     <a class="top-nav-item" href="index.html">Home</a>
                     <a class="top-nav-item" href="settings.html">Settings</a>
@@ -61,11 +62,33 @@
     const bouncerAddress = store.get('bouncerAddress');
     const username = store.get('username');
 
-    // Persistent File handling
+    // Load friends from storage
     let dataPath = '';
     ipcRenderer.on('path-relay', (event, data) => {
         dataPath = data['data'];
-        loadStoredMessages();
+
+        let friends = fs.readdirSync(`${dataPath}/data`);
+        friends.forEach((friend) => {
+
+            let newUser = document.createElement('div');
+            newUser.id = friend;
+            newUser.classList.add('user-log');
+            newUser.innerHTML =
+                "<h3>Settings for <span>" + friend + "</span></h3>" +
+                "<div>" +
+                "<button class='btn btn-warning'>Remove Friend</button>" +
+                "</div>";
+            logArea.appendChild(newUser);
+
+            newUser.children[1].firstChild.id = "rem-" + friend;
+            newUser.children[1].firstChild.addEventListener('click', removeFriend);
+
+            let userLink = document.createElement('p');
+            userLink.innerHTML = `<a class="side-nav-item" href="#${friend}">${friend}</a>`;
+            userList.appendChild(userLink);
+        });
+
+        //loadStoredMessages();
 
         console.log("Setting settings content")
 
@@ -154,7 +177,7 @@
     }
 
     function removeFriend(event) {
-        console.log("Not implemented", event.target.id);
+        console.log(event.target);
     }
 
 </script>
