@@ -88,10 +88,9 @@
             delMessages.addEventListener('click', () => {
 
                 if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
-                    fs.truncate(`${dataPath}/messages.jsonl`, 0, (err) => {
-                        if (err) {
-                            console.log('error', err);
-                        }
+                    let friends = fs.readdirSync(`${dataPath}/data`);
+                    friends.forEach((friendPath) => {
+                        fs.rmdirSync(`${dataPath}/data/${friendPath}`, {recursive: true});
                     });
                 }
             });

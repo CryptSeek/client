@@ -92,22 +92,27 @@
         }
 
         function loadStoredMessages() {
-            fs.readFile(`${dataPath}/messages.jsonl`, {encoding: 'utf-8'}, (err, data) => {
-                if (!err) {
-                    let messages = data.split('\n');
-                    messages.forEach(message => {
-                        try {
-                            const obj = JSON.parse(message);
-                            const sender = obj['sender'];
-                            const recipient = obj['recipient'];
-                            const content = obj['message'];
-                            receiveMessage(sender, recipient, content)
-                        } catch {
-                            console.log('error processing data: ' + message.toString());
-                        }
-                    });
-                }
+            let friends = fs.readdirSync(`${dataPath}/data`);
+            friends.forEach((friendPath) => {
+                fs.readFile(`${dataPath}/data/${friendPath}/messages.jsonl`, {encoding: 'utf-8'}, (err, data) => {
+                    if (!err) {
+                        let messages = data.split('\n');
+                        messages.forEach(message => {
+                            try {
+                                const obj = JSON.parse(message);
+                                const sender = obj['sender'];
+                                const recipient = obj['recipient'];
+                                const content = obj['message'];
+                                receiveMessage(sender, recipient, content)
+                            } catch {
+                                console.log('error processing data: ' + message.toString());
+                            }
+                        });
+                    }
+                });
             });
+
+
         }
 
         // This function sends messages to the bouncer
