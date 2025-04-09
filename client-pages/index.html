@@ -28,6 +28,7 @@
                     <img src="./logo.png" style="width: 200px; text-align: left;"
                         alt="CryptSeek Logo">
                     <div style="text-align: right;">
+                        <a class="top-nav-item" href="friends.html">Friends</a>
                         <a class="top-nav-item" href="settings.html">Settings</a>
                     </div>
                 </nav>
@@ -95,12 +96,15 @@
                 if (!err) {
                     let messages = data.split('\n');
                     messages.forEach(message => {
-                        const obj = JSON.parse(message);
-                        const sender = obj['sender'];
-                        const recipient = obj['recipient'];
-                        const content = obj['message'];
-
-                        receiveMessage(sender, recipient, content)
+                        try {
+                            const obj = JSON.parse(message);
+                            const sender = obj['sender'];
+                            const recipient = obj['recipient'];
+                            const content = obj['message'];
+                            receiveMessage(sender, recipient, content)
+                        } catch {
+                            console.log('error processing data: ' + message.toString());
+                        }
                     });
                 }
             });
