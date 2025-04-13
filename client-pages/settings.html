@@ -1,101 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CryptSeek</title>
-        <link rel="stylesheet" href="./styles.css">
-    </head>
-    <body>
-        <div class="settings">
-            <!-- Navbar -->
-            <nav class="top-nav">
-                <img src="./logo.png" style="width: 200px; text-align: left;"
-                    alt="CryptSeek Logo">
-                <div style="text-align: right;">
-                    <a class="top-nav-item" href="index.html">Home</a>
-                </div>
-            </nav>
-
-            <!-- Settings Box -->
-            <div class="info-box">
-                <h2 style="margin: 5px 0 15px 0; text-align: center;">Settings</h2>
-                <h3>Address Settings</h3>
-                <label for="bouncer-address">Bouncer Address:</label>
-                <input type="text" id="bouncer-address" value>
-                <p></p>
-                <label for="gateway-address">Gateway Address:</label>
-                <input type="text" id="gateway-address" value>
-                <p>
-                    <sup>* If you don't receive messages, make sure your gateway
-                        address is correct.
-                    </sup>
-                </p>
-                <h3 style="margin-top: 40px;">Account Settings</h3>
-                <label for="username">Username:</label>
-                <input type="text" id="username" value>
-                <p></p>
-                <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
-
-                <button id="del-messages" class="btn btn-warning" style="margin-top: 40px;">Delete Saved Messages</button>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CryptSeek</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+    <div class="settings">
+        <!-- Navbar -->
+        <nav class="top-nav">
+            <img src="./logo.png" style="width: 200px; text-align: left;" alt="CryptSeek Logo" />
+            <div style="text-align: right;">
+                <a class="top-nav-item" href="index.html">Home</a>
+                <a class="top-nav-item" href="client-pages/friends.html">Friends</a>
             </div>
+        </nav>
+
+        <!-- Settings Box -->
+        <div class="info-box">
+            <h2 style="margin: 5px 0 15px 0; text-align: center;">Settings</h2>
+
+            <h3>Address Settings</h3>
+            <label for="bouncer-address">Bouncer Address:</label>
+            <input type="text" id="bouncer-address" value="" />
+            <p></p>
+
+            <label for="gateway-address">Gateway Address:</label>
+            <input type="text" id="gateway-address" value="" />
+            <p>
+                <sup>* If you don't receive messages, make sure your gateway address is correct.</sup>
+            </p>
+
+            <h3 style="margin-top: 40px;">Account Settings</h3>
+            <label for="username">Username:</label>
+            <input type="text" id="username" value="" />
+            <p></p>
+
+            <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
+            <button id="del-messages" class="btn btn-warning" style="margin-top: 40px;">Delete Saved Messages</button>
         </div>
+    </div>
 
-        <script>
-            const Store = require('electron-store');
-            const { ipcRenderer } = require("electron");
-            const fs = require('fs');
+    <script>
+        const Store = require('electron-store');
+        const { ipcRenderer } = require("electron");
+        const fs = require('fs');
 
-            const bouncerAddress = document.getElementById('bouncer-address');
-            const gatewayAddress = document.getElementById('gateway-address');
-            const username = document.getElementById('username');
-            const saveBtn = document.getElementById('save');
-            const delMessages = document.getElementById('del-messages');
+        const bouncerAddress = document.getElementById('bouncer-address');
+        const gatewayAddress = document.getElementById('gateway-address');
+        const username = document.getElementById('username');
+        const saveBtn = document.getElementById('save');
+        const delMessages = document.getElementById('del-messages');
 
-            const store = new Store();
-            bouncerAddress.value = store.get('bouncerAddress');
-            gatewayAddress.value = store.get('gatewayAddress');
-            username.value = store.get('username');
+        const store = new Store();
 
+        // Load saved settings into input fields
+        bouncerAddress.value = store.get('bouncerAddress') || '';
+        gatewayAddress.value = store.get('gatewayAddress') || '';
+        username.value = store.get('username') || '';
 
-            saveBtn.addEventListener('click', () => {
-                let bAddr = bouncerAddress.value;
-                let gAddr = gatewayAddress.value;
-                let newUsername = username.value;
+        saveBtn.addEventListener('click', () => {
+            store.set('bouncerAddress', bouncerAddress.value);
+            store.set('gatewayAddress', gatewayAddress.value);
+            store.set('username', username.value);
+            ipcRenderer.send('settings-saved', "saved");
+        });
 
-                store.set('bouncerAddress', bAddr);
-                store.set('gatewayAddress', gAddr);
-                store.set('username', newUsername);
+        // Persistent file handling
+        let dataPath = '';
+        ipcRenderer.on('path-relay', (event, data) => {
+            dataPath = data['data'];
+        });
 
+        if (dataPath === '') {
+            ipcRenderer.send('get-path');
+        }
 
-                ipcRenderer.send('settings-saved', "saved");
-                //window.location.reload();
-            });
-
-
-
-            // Persistent File handling
-            let dataPath = '';
-            ipcRenderer.on('path-relay', (event, data) => {
-                dataPath = data['data'];
-                loadStoredMessages();
-            });
-
-            if (dataPath === '') {
-                ipcRenderer.send('get-path');
-            }
-
-            delMessages.addEventListener('click', () => {
-
-                if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
-                    let friends = fs.readdirSync(`${dataPath}/data`);
-                    friends.forEach((friendPath) => {
-                        fs.rmdirSync(`${dataPath}/data/${friendPath}`, {recursive: true});
+        delMessages.addEventListener('click', () => {
+            if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this?\nThis action cannot be undone.")) {
+                try {
+                    const friends = fs.readdirSync(`${dataPath}/data`);
+                    friends.forEach(friendPath => {
+                        fs.rmdirSync(`${dataPath}/data/${friendPath}`, { recursive: true });
                     });
+                } catch (err) {
+                    console.error("Error deleting messages:", err);
+                    alert("An error occurred while deleting messages.");
                 }
-            });
-
+            }
+        });
     </script>
-
-    </body>
+</body>
 </html>
