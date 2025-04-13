@@ -11,8 +11,10 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "electron": "^35.0.0",
     "electron-store": "^8.2.0",
     "zeromq": "^6.3.0"
+  },
+  "devDependencies": {
+    "electron": "^35.1.5"
   }
 }
