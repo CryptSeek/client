@@ -23,7 +23,7 @@ class PQMessagingClient:
         if response.startswith("CIPHERTEXT:"):
             shared_secret, ciphertext = self.key_exchange.compute_shared_key(response.split(":")[1])
             self.shared_key = self.key_exchange.decrypt_shared_key(ciphertext)
-            print("🔑 Secure connection established!")
+            print("Secure connection established!")
 
     def send_message(self, message):
         """Encrypt and send message with key identifier"""
@@ -42,9 +42,9 @@ class PQMessagingClient:
         decryption_key = find_decryption_key(identifier, nonce)
         if decryption_key:
             decrypted_msg = decrypt_message(encrypted_msg, decryption_key)
-            print(f"🔓 Received: {decrypted_msg}")
+            print(f"Received: {decrypted_msg}")
         else:
-            print("❌ No matching decryption key found.")
+            print("No matching decryption key found.")
 
 
 client = PQMessagingClient()
