@@ -178,6 +178,13 @@
 
     function removeFriend(event) {
         console.log(event.target);
+        let friendName = event.target.parentNode.parentNode.id;
+        if (confirm("Are you sure you want to remove this friend\nThis cannot be undone!")) {
+            fs.rmSync(`${dataPath}/data/${friendName}`, {recursive: true});
+            window.location.reload();
+        }
+
+
     }
 
 </script>
