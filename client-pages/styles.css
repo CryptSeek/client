@@ -64,6 +64,11 @@ html, body {
     display: inline-block;
 }
 
+.side-nav-p {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
 .settings {
     margin: 10px;
     padding: 10px;

@@ -19,7 +19,7 @@
 
             <!-- Settings Box -->
             <div class="info-box">
-                <h2 style="margin: 5px 0px 15px 0px; text-align: center;">Settings</h2>
+                <h2 style="margin: 5px 0 15px 0; text-align: center;">Settings</h2>
                 <h3>Address Settings</h3>
                 <label for="bouncer-address">Bouncer Address:</label>
                 <input type="text" id="bouncer-address" value>
@@ -88,10 +88,9 @@
             delMessages.addEventListener('click', () => {
 
                 if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
-                    fs.truncate(`${dataPath}/messages.jsonl`, 0, (err) => {
-                        if (err) {
-                            console.log('error', err);
-                        }
+                    let friends = fs.readdirSync(`${dataPath}/data`);
+                    friends.forEach((friendPath) => {
+                        fs.rmdirSync(`${dataPath}/data/${friendPath}`, {recursive: true});
                     });
                 }
             });

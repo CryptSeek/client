@@ -8,6 +8,13 @@ const fs = require('fs');
 let mainWindow, subscriberWindow;
 let tray = null;
 
+const store = new Store({
+    defaults: {
+        bouncerAddress: "http://cryptseek.wycre.net:9090/upload",
+        gatewayAddress: "tcp://cryptseek.wycre.net:5555",
+    }
+});
+
 //////////////////
 // IPC event message handlers
 //////////////////
@@ -15,8 +22,31 @@ let tray = null;
 // Relays messages from the subscriber to the main window
 function handleMessageReceived(event, message) {
     console.log(message);
+
+    let path = app.getPath("userData");
+
+    // Ensure data folder exists
+    if (!fs.existsSync(`${path}/data`)) {
+        fs.mkdirSync(`${path}/data`);
+    }
+
+    let msgObj = JSON.parse(message);
+
+    // Ensure friend folder exists
+    let messageRel;
+    if (msgObj['sender'] === store.get('username')) {
+        messageRel = msgObj['recipient'];
+    }
+    else {
+        messageRel = msgObj['sender'];
+    }
+    if (!fs.existsSync(`${path}/data/${messageRel}`)) {
+        fs.mkdirSync(`${path}/data/${messageRel}`);
+    }
+
     // Write message to data file
-    fs.appendFile(`${app.getPath("userData")}/messages.jsonl`, `${message}\n`, (err) => {
+    console.log(messageRel);
+    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${message}\n`, (err) => {
         if (err) {
             console.log('error', err);
         }
@@ -46,13 +76,6 @@ function getPath(event) {
 //////////////////
 app.whenReady().then(() => {
     Store.initRenderer();
-
-    const store = new Store({
-        defaults: {
-            bouncerAddress: "http://cryptseek.wycre.net:9090/upload",
-            gatewayAddress: "tcp://cryptseek.wycre.net:5555",
-        }
-    });
 
     console.log(app.getPath('userData'));
 
