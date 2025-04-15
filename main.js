@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
+const crypt = require('./crypto/crypto.js');
 const Store = require("electron-store");
 const fs = require('fs');
 
@@ -100,6 +101,42 @@ app.whenReady().then(() => {
     ipcMain.on('message-received', handleMessageReceived)
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
+    // Encrypt a message with AES key
+    ipcMain.handle('encrypt-message', async (event, { message, key }) => {
+        const keyBuffer = Buffer.from(key, 'base64');
+        const encrypted = crypt.encryptMessage(message, keyBuffer);
+        return encrypted.toString('base64');
+    });
+
+    // Decrypt a message with AES key
+    ipcMain.handle('decrypt-message', async (event, { encrypted, key }) => {
+        const encryptedBuffer = Buffer.from(encrypted, 'base64');
+        const keyBuffer = Buffer.from(key, 'base64');
+        try {
+            const decrypted = crypt.decryptMessage(encryptedBuffer, keyBuffer);
+            return decrypted;
+        } catch (err) {
+            console.error("Decryption failed:", err);
+            return null;
+        }
+    });
+
+    // Store key and return identifier + nonce
+    ipcMain.handle('store-key', async (event, { key }) => {
+        const keyBuffer = Buffer.from(key, 'base64');
+        const { identifier, nonce } = crypt.storeKey(keyBuffer);
+        return {
+            identifier,
+            nonce: Buffer.from(nonce).toString('base64')
+        };
+    });
+
+    // Find key using identifier and nonce
+    ipcMain.handle('find-key', async (event, { identifier, nonce }) => {
+        const nonceBuffer = Buffer.from(nonce, 'base64');
+        const foundKey = crypt.findKey(identifier, nonceBuffer);
+        return foundKey ? foundKey.toString('base64') : null;
+    });
 
     // Create subscriber window
     subscriberWindow = new BrowserWindow({

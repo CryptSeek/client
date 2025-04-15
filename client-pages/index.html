@@ -135,10 +135,46 @@
                 return false;
             }
 
-            const content = document.getElementById("message").value;
-            const message = `{"sender": "${username}","recipient": "${recipient}", "message": "${content}"}`;
+            async function sendMessage() {
+                let recipient = document.querySelector("#recipient").value || location.href.split('#')[1];
+                if (!recipient) return;
 
-            const response = fetch(bouncerAddress, {method: "POST", body: message});
+                const plaintext = document.getElementById("message").value;
+                const keyBase64 = localStorage.getItem(`key-${recipient}`);
+                if (!keyBase64) {
+                    alert("Missing encryption key for this recipient.");
+                    return;
+                }
+
+                // Store key in main process and get identifier + nonce
+                const { identifier, nonce } = await ipcRenderer.invoke('store-key', { key: keyBase64 });
+
+                // Encrypt full message
+                const messageObject = {
+                    sender: username,
+                    recipient: recipient,
+                    message: plaintext
+                };
+
+                const encrypted = await ipcRenderer.invoke('encrypt-message', {
+                    message: JSON.stringify(messageObject),
+                    key: keyBase64
+                });
+
+                // Create envelope with metadata for key lookup
+                const envelope = {
+                    identifier: identifier,
+                    nonce: nonce,
+                    payload: encrypted
+                };
+
+                await fetch(bouncerAddress, {
+                    method: "POST",
+                    body: JSON.stringify(envelope)
+                });
+
+                document.getElementById("message").value = '';
+            }
 
             // Clear input field
             document.getElementById("message").value = '';
@@ -223,12 +259,26 @@
 
         // Puts new messages up in the response area
         ipcRenderer.on("message-received", (event, message) => {
-            const obj = JSON.parse(message['data']);
-            const sender = obj['sender'];
-            const recipient = obj['recipient'];
-            const content = obj['message'];
+            (async () => {
+                const { payload, identifier, nonce } = JSON.parse(message['data']);
+                const foundKeyBase64 = await ipcRenderer.invoke('find-key', {
+                    identifier: identifier,
+                    nonce: nonce
+                });
 
-            receiveMessage(sender, recipient, content)
+                if (!foundKeyBase64) {
+                    console.warn("Decryption key not found for identifier:", identifier);
+                    return;
+                }
+
+                const decrypted = await ipcRenderer.invoke('decrypt-message', {
+                    encrypted: payload,
+                    key: foundKeyBase64
+                });
+            
+                const { sender, recipient, message: content } = JSON.parse(decrypted);
+                receiveMessage(sender, recipient, content);
+            })();
 
             console.log(obj);
         });
