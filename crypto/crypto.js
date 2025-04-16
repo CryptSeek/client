@@ -62,27 +62,44 @@ function findKey(identifier, nonce) {
     return null;
 }
 
-///////////////////////////////////////
-// Post-Quantum Key Exchange (TODO) //
-///////////////////////////////////////
+// ------------------------------
+// RSA Key Exchange (NodeJS)
+// ------------------------------
+const fs = require('fs');
+const path = require('path');
 
-// Note: This section is a placeholder.
-// Implementation needs to be based around RSA
+function getKeyPath() {
+    const { app } = require('electron');
+    return path.join(app.getPath('userData'), 'rsa_keypair.json');
+}
 
-const pqKeyExchange = {
-    init: () => {
-        throw new Error("Post-Quantum key exchange not yet implemented in JS");
-    },
-    getSignedPublicKey: () => {
-        throw new Error("getSignedPublicKey not implemented");
-    },
-    computeSharedKey: (peerSignedPubKey) => {
-        throw new Error("computeSharedKey not implemented");
-    },
-    decryptSharedKey: (ciphertext) => {
-        throw new Error("decryptSharedKey not implemented");
+function generateRSAKeyPair() {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+    });
+
+    fs.writeFileSync(keyPath, JSON.stringify({ publicKey, privateKey }));
+    return { publicKey, privateKey };
+}
+
+function loadRSAKeyPair() {
+    if (!fs.existsSync(keyPath)) {
+        return generateRSAKeyPair();
     }
-};
+    const { publicKey, privateKey } = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+    return { publicKey, privateKey };
+}
+
+function encryptAESKeyWithRSA(publicKey, aesKey) {
+    return crypto.publicEncrypt(publicKey, aesKey).toString('base64');
+}
+
+function decryptAESKeyWithRSA(ciphertextB64, privateKey) {
+    const buffer = Buffer.from(ciphertextB64, 'base64');
+    return crypto.privateDecrypt(privateKey, buffer);
+}
 
 ///////////////////////
 // Module Exports    //
@@ -93,7 +110,11 @@ module.exports = {
     decryptMessage,
     storeKey,
     findKey,
+    getKeyPath,
     generateKeyIdentifier,
-    pqKeyExchange
+    generateRSAKeyPair,
+    loadRSAKeyPair,
+    encryptAESKeyWithRSA,
+    decryptAESKeyWithRSA
 };
 

@@ -138,6 +138,26 @@ app.whenReady().then(() => {
         return foundKey ? foundKey.toString('base64') : null;
     });
 
+    // Get my RSA public key
+    ipcMain.handle('get-public-key', async () => {
+        const { publicKey } = crypt.loadRSAKeyPair();
+        return publicKey;
+    });
+
+    // Encrypt AES key with friend's public RSA key
+    ipcMain.handle('encrypt-aes-key', async (event, { aesKeyBase64, friendPublicKey }) => {
+        const aesKey = Buffer.from(aesKeyBase64, 'base64');
+        return crypt.encryptAESKeyWithRSA(friendPublicKey, aesKey);
+    });
+
+    // Decrypt AES key with my private RSA key
+    ipcMain.handle('decrypt-aes-key', async (event, { encryptedKey }) => {
+        const { privateKey } = crypt.loadRSAKeyPair();
+        const keyBuffer = crypt.decryptAESKeyWithRSA(encryptedKey, privateKey);
+        return keyBuffer.toString('base64');
+    });
+
+
     // Create subscriber window
     subscriberWindow = new BrowserWindow({
         show: false,
