@@ -31,10 +31,10 @@
 
         async function handleIncoming(message) {
             console.log(message.toString());
-            if (await validateRecipient(message)) {
-                ipcRenderer.send('message-received', message.toString());
+            if (!await validateRecipient(message)) {
+                console.log("Message not intended for recipient");
             }
-            console.log("Message not intended for recipient");
+            ipcRenderer.send('message-received', message.toString());
         }
 
         async function validateRecipient(message) {
