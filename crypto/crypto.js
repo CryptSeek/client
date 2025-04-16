@@ -8,6 +8,8 @@ const crypto = require('crypto');
 // AES-GCM Functions //
 ///////////////////////
 
+
+// Encrypts a message with AES-GCM
 function encryptMessage(message, key) {
     const nonce = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, nonce);
@@ -16,6 +18,7 @@ function encryptMessage(message, key) {
     return Buffer.concat([nonce, ciphertext, tag]);
 }
 
+// Decrypts an AES-GCM encrypted message
 function decryptMessage(encrypted, key) {
     const nonce = encrypted.slice(0, 12);
     const tag = encrypted.slice(encrypted.length - 16);
@@ -33,12 +36,14 @@ function decryptMessage(encrypted, key) {
 
 const keyTable = {}; // { identifier: key }
 
+// Creates a mutable key identifier by hashing the shared key with a nonce
 function generateKeyIdentifier(sharedKey, nonce) {
     const salted = Buffer.concat([sharedKey, nonce]);
     const hash = crypto.createHash('sha256').update(salted).digest('hex');
     return hash.slice(0, 16); // short ID
 }
 
+// Stores shared encryption key in the hash table
 function storeKey(sharedKey) {
     const nonce = crypto.randomBytes(12);
     const identifier = generateKeyIdentifier(sharedKey, nonce);
@@ -46,6 +51,7 @@ function storeKey(sharedKey) {
     return { identifier, nonce };
 }
 
+// Finds the correct decryption key using the identifier and nonce
 function findKey(identifier, nonce) {
     for (const key of Object.values(keyTable)) {
         const testId = generateKeyIdentifier(key, nonce);
@@ -60,9 +66,8 @@ function findKey(identifier, nonce) {
 // Post-Quantum Key Exchange (TODO) //
 ///////////////////////////////////////
 
-// Note: This section is a placeholder. To fully support Kyber + Dilithium
-// in JS, you will need to compile or load WASM bindings (e.g., via WebAssembly).
-// For now, we include function stubs to wire later.
+// Note: This section is a placeholder.
+// Implementation needs to be based around RSA
 
 const pqKeyExchange = {
     init: () => {
