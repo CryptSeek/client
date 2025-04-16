@@ -122,13 +122,10 @@ app.whenReady().then(() => {
     });
 
     // Store key and return identifier + nonce
-    ipcMain.handle('store-key', async (event, { key }) => {
+    ipcMain.handle('store-key', async (event, { key, sender }) => {
         const keyBuffer = Buffer.from(key, 'base64');
-        const { identifier, nonce } = crypt.storeKey(keyBuffer);
-        return {
-            identifier,
-            nonce: Buffer.from(nonce).toString('base64')
-        };
+        const { identifier } = crypt.storeKey(keyBuffer, sender);
+        return { identifier };
     });
 
     // Find key using identifier and nonce

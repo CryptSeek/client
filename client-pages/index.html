@@ -128,7 +128,10 @@
             }
 
             // Store key in main process and get identifier + nonce
-            const { identifier, nonce } = await ipcRenderer.invoke('store-key', { key: keyBase64 });
+            const { identifier } = await ipcRenderer.invoke('store-key', {
+                key: keyBase64,
+                sender: username // so it’s unique per direction
+            });
 
             // Encrypt full message object (sender, recipient, message)
             const messageObject = {

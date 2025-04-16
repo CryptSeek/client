@@ -36,25 +36,23 @@ function decryptMessage(encrypted, key) {
 
 const keyTable = {}; // { identifier: key }
 
-// Creates a mutable key identifier by hashing the shared key with a nonce
-function generateKeyIdentifier(sharedKey, nonce) {
-    const salted = Buffer.concat([sharedKey, nonce]);
+// Creates a mutable key identifier by hashing the shared key with sender's
+function generateKeyIdentifier(sharedKey, senderName) {
+    const salted = Buffer.concat([sharedKey, Buffer.from(senderName)]);
     const hash = crypto.createHash('sha256').update(salted).digest('hex');
-    return hash.slice(0, 16); // short ID
+    return hash.slice(0, 16);
 }
 
-// Stores shared encryption key in the hash table
-function storeKey(sharedKey) {
-    const nonce = crypto.randomBytes(12);
-    const identifier = generateKeyIdentifier(sharedKey, nonce);
+function storeKey(sharedKey, senderName) {
+    const identifier = generateKeyIdentifier(sharedKey, senderName);
     keyTable[identifier] = sharedKey;
-    return { identifier, nonce };
+    return { identifier };
 }
 
 // Finds the correct decryption key using the identifier and nonce
-function findKey(identifier, nonce) {
+function findKey(identifier, senderName) {
     for (const key of Object.values(keyTable)) {
-        const testId = generateKeyIdentifier(key, nonce);
+        const testId = generateKeyIdentifier(key, senderName);
         if (testId === identifier) {
             return key;
         }
