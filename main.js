@@ -101,20 +101,24 @@ app.whenReady().then(() => {
     ipcMain.on('message-received', handleMessageReceived)
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
-    // Encrypt a message with AES key
+    // Encrypt a message with AES key (returns Base64 string)
     ipcMain.handle('encrypt-message', async (event, { message, key }) => {
-        const keyBuffer = Buffer.from(key, 'base64');
-        const encrypted = crypt.encryptMessage(message, keyBuffer);
-        return encrypted.toString('base64');
+        try {
+            const keyBuffer = Buffer.from(key, 'base64');
+            const encrypted = crypt.encryptMessage(message, keyBuffer); // returns Base64
+            return encrypted;
+        } catch (err) {
+            console.error("Encryption failed:", err);
+            return null;
+        }
     });
 
-    // Decrypt a message with AES key
+    // Decrypt a message with AES key (input: Base64, output: UTF-8 string)
     ipcMain.handle('decrypt-message', async (event, { encrypted, key }) => {
-        const encryptedBuffer = Buffer.from(encrypted, 'base64');
-        const keyBuffer = Buffer.from(key, 'base64');
         try {
-            const decrypted = crypt.decryptMessage(encryptedBuffer, keyBuffer);
-            return decrypted;
+            const keyBuffer = Buffer.from(key, 'base64');
+            const decrypted = crypt.decryptMessage(encrypted, keyBuffer);
+            return decrypted; // returns UTF-8 string
         } catch (err) {
             console.error("Decryption failed:", err);
             return null;
@@ -128,10 +132,8 @@ app.whenReady().then(() => {
         return { identifier };
     });
 
-    // Find key using identifier and nonce
-    ipcMain.handle('find-key', async (event, { identifier, nonce }) => {
-        const nonceBuffer = Buffer.from(nonce, 'base64');
-        const foundKey = crypt.findKey(identifier, nonceBuffer);
+    ipcMain.handle('find-key', async (event, { identifier, sender }) => {
+        const foundKey = crypt.findKey(identifier, sender);
         return foundKey ? foundKey.toString('base64') : null;
     });
 

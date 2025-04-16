@@ -13,21 +13,36 @@ const crypto = require('crypto');
 function encryptMessage(message, key) {
     const nonce = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, nonce);
-    const ciphertext = Buffer.concat([cipher.update(message, 'utf8'), cipher.final()]);
+    const ciphertext = Buffer.concat([
+        cipher.update(message, 'utf8'),
+        cipher.final()
+    ]);
     const tag = cipher.getAuthTag();
-    return Buffer.concat([nonce, ciphertext, tag]);
+    const encrypted = Buffer.concat([nonce, ciphertext, tag]);
+    // Return as Base64 string to make transmission safer
+    return encrypted.toString('base64');
 }
 
 // Decrypts an AES-GCM encrypted message
-function decryptMessage(encrypted, key) {
+function decryptMessage(base64Encrypted, key) {
+    const encrypted = Buffer.from(base64Encrypted, 'base64');
     const nonce = encrypted.slice(0, 12);
-    const tag = encrypted.slice(encrypted.length - 16);
     const ciphertext = encrypted.slice(12, encrypted.length - 16);
+    const tag = encrypted.slice(encrypted.length - 16);
 
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce);
     decipher.setAuthTag(tag);
-    const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    return decrypted.toString('utf8');
+
+    try {
+        const decrypted = Buffer.concat([
+            decipher.update(ciphertext),
+            decipher.final()
+        ]);
+        return decrypted.toString('utf8');
+    } catch (err) {
+        console.error("AES-GCM decryption failed:", err);
+        throw err;
+    }
 }
 
 /////////////////////////////
@@ -38,6 +53,9 @@ const keyTable = {}; // { identifier: key }
 
 // Creates a mutable key identifier by hashing the shared key with sender's
 function generateKeyIdentifier(sharedKey, senderName) {
+    if (!senderName || typeof senderName !== 'string') {
+        throw new TypeError("Sender name must be a non-empty string");
+    }
     const salted = Buffer.concat([sharedKey, Buffer.from(senderName)]);
     const hash = crypto.createHash('sha256').update(salted).digest('hex');
     return hash.slice(0, 16);
