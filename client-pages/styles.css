@@ -177,3 +177,7 @@ input {
     height: 100%;
     overflow: hidden;
 }
+
+.message-log > li {
+    word-wrap: break-word;
+}
