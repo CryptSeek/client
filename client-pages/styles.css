@@ -150,13 +150,20 @@ input {
     padding-top: 10px;
     font-size: 1em;
     margin: 2px;
+    word-wrap: break-word;
+}
+
+.message-log > li > p {
+    width: 90%;
+    margin: 0;
 }
 
 .message-log > li:hover {
     background-color: #444;
 }
 
-.message-log > .own-message {
+.own-message > p {
+    float: right;
     text-align: right;
 }
 
@@ -179,5 +186,5 @@ input {
 }
 
 .message-log > li {
-    word-wrap: break-word;
+
 }

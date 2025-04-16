@@ -196,7 +196,11 @@
             if (bounceBack) {
                 newMessage.classList.add('own-message');
             }
-            newMessage.innerText = message;
+
+            let innerP = document.createElement('p');
+            innerP.innerText = message;
+
+            newMessage.appendChild(innerP);
             if (convo.children[1].firstChild) {
                 convo.children[1].insertBefore(newMessage, convo.children[1].firstChild);
             }
