@@ -92,67 +92,22 @@
         }
 
         function loadStoredMessages() {
-            let friendsPath = `${dataPath}/data`;
-            if (!fs.existsSync(friendsPath)) return;
-
-            let friends = fs.readdirSync(friendsPath);
+            let friends = fs.readdirSync(`${dataPath}/data`);
             friends.forEach((friendPath) => {
-                const filePath = `${friendsPath}/${friendPath}/messages.jsonl`;
-                if (!fs.existsSync(filePath)) return;
-
-                const data = fs.readFileSync(filePath, { encoding: 'utf-8' });
-                const messages = data.trim().split('\n');
-
-                messages.forEach(async (line) => {
-                    try {
-                        const msgObj = JSON.parse(line);
-                        const { identifier, payload } = msgObj;
-
-                        // Try decrypting with all known keys to extract sender
-                        let decrypted = null;
-                        let sender = null;
-
-                        const storedKeys = Object.keys(localStorage).filter(k => k.startsWith("key-"));
-                        for (const k of storedKeys) {
-                            const keyBase64 = localStorage.getItem(k);
+                fs.readFile(`${dataPath}/data/${friendPath}/messages.jsonl`, {encoding: 'utf-8'}, (err, data) => {
+                    if (!err) {
+                        let messages = data.split('\n');
+                        messages.forEach(message => {
                             try {
-                                decrypted = await ipcRenderer.invoke('decrypt-message', {
-                                    encrypted: payload,
-                                    key: keyBase64
-                                });
-                                const parsed = JSON.parse(decrypted);
-                                sender = parsed.sender;
-                                break;
+                                const obj = JSON.parse(message);
+                                const sender = obj['sender'];
+                                const recipient = obj['recipient'];
+                                const content = obj['message'];
+                                receiveMessage(sender, recipient, content)
                             } catch {
-                                // try next
+                                console.log('error processing data: ' + message.toString());
                             }
-                        }
-
-                        if (!sender || !decrypted) {
-                            receiveMessage("unknown", "unknown", "[Encrypted message: unable to decrypt]");
-                            return;
-                        }
-
-                        const foundKeyBase64 = await ipcRenderer.invoke('find-key', {
-                            identifier: identifier,
-                            sender: sender
                         });
-
-                        if (!foundKeyBase64) {
-                            receiveMessage("legacy", "legacy", "[Encrypted message: unable to decrypt]");
-                            return;
-                        }
-
-                        const finalDecrypted = await ipcRenderer.invoke('decrypt-message', {
-                            encrypted: payload,
-                            key: foundKeyBase64
-                        });
-
-                        const { sender: s, recipient, message: content } = JSON.parse(finalDecrypted);
-                        receiveMessage(s, recipient, content);
-
-                    } catch (err) {
-                        console.warn("Error parsing stored message:", err);
                     }
                 });
             });
@@ -164,17 +119,6 @@
             if (!recipient) return;
 
             const plaintext = document.getElementById("message").value;
-            const keyBase64 = localStorage.getItem(`key-${recipient}`);
-            if (!keyBase64) {
-                alert("Missing encryption key for this recipient.");
-                return;
-            }
-
-            // Store key in main process and get identifier + username
-            const { identifier } = await ipcRenderer.invoke('store-key', {
-                key: keyBase64,
-                sender: username // so it’s unique per direction
-            });
 
             // Encrypt full message object (sender, recipient, message)
             const messageObject = {
@@ -183,21 +127,7 @@
                 message: plaintext
             };
 
-            const encrypted = await ipcRenderer.invoke('encrypt-message', {
-                message: JSON.stringify(messageObject),
-                key: keyBase64
-            });
-
-            // Create envelope to send to server
-            const envelope = {
-                identifier: identifier,
-                payload: encrypted
-            };
-
-            await fetch(bouncerAddress, {
-                method: "POST",
-                body: JSON.stringify(envelope)
-            });
+            ipcRenderer.send('send-message', messageObject);
 
             // Clear input field
             document.getElementById("message").value = '';
@@ -205,8 +135,6 @@
         }
 
         function receiveMessage(sender, recipient, message) {
-            if (!sender) sender = "legacy";
-            if (!recipient) recipient = "legacy";
 
             console.log("Processing message from:" + sender + " to " + recipient);
 
@@ -283,56 +211,12 @@
         }
 
         // Puts new messages up in the response area
-        ipcRenderer.on("message-received", (event, message) => {
-            (async () => {
-                const { payload, identifier } = JSON.parse(message['data']);
+        ipcRenderer.on("message-received", (event, messageObj) => {
+            const sender = messageObj['sender'];
+            const recipient = messageObj['recipient'];
+            const content = messageObj['message'];
 
-                // Temporarily decrypt just to extract sender (needed for deterministic identifier)
-                let decrypted, sender;
-                const storedKeys = Object.keys(localStorage).filter(k => k.startsWith("key-"));
-
-                for (const k of storedKeys) {
-                    const keyBase64 = localStorage.getItem(k);
-                    console.log("Trying key:", k);
-                    try {
-                        decrypted = await ipcRenderer.invoke('decrypt-message', {
-                            encrypted: payload,
-                            key: keyBase64
-                        });
-
-                        const parsed = JSON.parse(decrypted);
-                        sender = parsed.sender;
-                        break;
-                    } catch (e) {
-                        console.warn("Decryption with key", k, "failed.");
-                    }
-                }
-
-                if (!sender || !decrypted) {
-                    console.warn("Could not decrypt message or extract sender.");
-                    return;
-                }
-
-                const foundKeyBase64 = await ipcRenderer.invoke('find-key', {
-                    identifier,
-                    sender
-                });
-
-                if (!foundKeyBase64) {
-                    console.warn("No key found for:", identifier, "→ Legacy or invalid message");
-                    receiveMessage("unknown", "unknown", "[Encrypted message: unable to decrypt]");
-                    return;
-                }
-
-
-                const finalDecrypted = await ipcRenderer.invoke('decrypt-message', {
-                    encrypted: payload,
-                    key: foundKeyBase64
-                });
-
-                const { sender: s, recipient, message: content } = JSON.parse(finalDecrypted);
-                receiveMessage(s, recipient, content);
-            })();
+            receiveMessage(sender, recipient, content)
         });
     </script>
     </body>

@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
 const crypt = require('./crypto/crypto.js');
 const Store = require("electron-store");
 const fs = require('fs');
+const path = require("node:path");
+const {generateKeyIdentifier, decryptMessage, encryptMessage} = require("./crypto/crypto");
 
 //////////////////
 // Global variables
@@ -16,12 +18,14 @@ const store = new Store({
     }
 });
 
+const keys = {};
+
 //////////////////
 // IPC event message handlers
 //////////////////
 
 // Relays messages from the subscriber to the main window
-function handleMessageReceived(event, message) {
+async function handleMessageReceived(event, message) {
     console.log(message);
 
     let path = app.getPath("userData");
@@ -31,7 +35,13 @@ function handleMessageReceived(event, message) {
         fs.mkdirSync(`${path}/data`);
     }
 
-    let msgObj = JSON.parse(message);
+    const { payload, identifier } = JSON.parse(message);
+
+    // Attempt Message Decryption
+    let key = keys[identifier];
+    let msgObj = JSON.parse(crypt.decryptMessage(payload, key));
+
+    console.log("messageRel: ",msgObj);
 
     // Ensure friend folder exists
     let messageRel;
@@ -47,13 +57,35 @@ function handleMessageReceived(event, message) {
 
     // Write message to data file
     console.log(messageRel);
-    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${message}\n`, (err) => {
+    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(msgObj)}\n`, (err) => {
         if (err) {
             console.log('error', err);
         }
     });
 
-    mainWindow.webContents.send('message-received', {data: message});
+    mainWindow.webContents.send('message-received', msgObj);
+}
+
+async function handleSendMessage(event, messageObject) {
+    console.log("Sending Message", messageObject);
+    let recipient = messageObject.recipient;
+    const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
+    if (fs.existsSync(keyFile)) {
+        let key = Buffer.from(fs.readFileSync(keyFile).toString(), 'base64');
+        let encrypted = crypt.encryptMessage(JSON.stringify(messageObject), key);
+        console.log(encrypted);
+        let identifier = crypt.generateKeyIdentifier(key, recipient)
+
+        let envelope = {
+            identifier: identifier,
+            payload: encrypted
+        }
+
+        await fetch(store.get('bouncerAddress'), {
+            method: 'POST',
+            body: JSON.stringify(envelope),
+        })
+    }
 }
 
 // Restarts the subscriber window (to accept new settings)
@@ -78,7 +110,27 @@ function getPath(event) {
 app.whenReady().then(() => {
     Store.initRenderer();
 
-    console.log(app.getPath('userData'));
+    const dataPath = app.getPath("userData");
+    console.log(dataPath);
+
+    if (fs.existsSync(`${dataPath}/data`)) {
+        let friends = fs.readdirSync(`${dataPath}/data`);
+        friends.forEach(friend => {
+           const filePath = `${dataPath}/data/${friend}/key`;
+           if (fs.existsSync(filePath)) {
+               let key = Buffer.from(fs.readFileSync(filePath).toString(), 'base64');
+               let ident = generateKeyIdentifier(key, store.get('username'));
+               keys[ident] = key;
+
+               ident = generateKeyIdentifier(key, friend).toString();
+               keys[ident] = key;
+           }
+        });
+    }
+
+    console.log(keys)
+
+
 
     // Initialize system tray
     tray = new Tray('tray-logo.png');
@@ -98,7 +150,8 @@ app.whenReady().then(() => {
 
 
     // Register event listener for message reception
-    ipcMain.on('message-received', handleMessageReceived)
+    ipcMain.on('message-received', handleMessageReceived);
+    ipcMain.on('send-message', handleSendMessage);
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
     // Encrypt a message with AES key (returns Base64 string)
