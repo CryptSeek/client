@@ -89,7 +89,7 @@ function getKeyPath() {
     return path.join(app.getPath('userData'), 'rsa_keypair.json');
 }
 
-function generateRSAKeyPair() {
+function generateRSAKeyPair(keyPath) {
     const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 2048,
         publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
@@ -100,9 +100,9 @@ function generateRSAKeyPair() {
     return { publicKey, privateKey };
 }
 
-function loadRSAKeyPair() {
+function loadRSAKeyPair(keyPath) {
     if (!fs.existsSync(keyPath)) {
-        return generateRSAKeyPair();
+        return generateRSAKeyPair(keyPath);
     }
     const { publicKey, privateKey } = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
     return { publicKey, privateKey };

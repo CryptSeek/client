@@ -4,6 +4,7 @@ const Store = require("electron-store");
 const fs = require('fs');
 const path = require("node:path");
 const {generateKeyIdentifier, decryptMessage, encryptMessage} = require("./crypto/crypto");
+const keyPath = path.join(app.getPath('userData'), 'rsa_keypair.json');
 
 //////////////////
 // Global variables
@@ -192,8 +193,19 @@ app.whenReady().then(() => {
 
     // Get my RSA public key
     ipcMain.handle('get-public-key', async () => {
-        const { publicKey } = crypt.loadRSAKeyPair();
+        const { publicKey } = crypt.loadRSAKeyPair(keyPath);
         return publicKey;
+    });
+
+    // Get my encoded friend token for sharing
+    ipcMain.handle('get-public-key-token', async (event, { username }) => {
+    const { publicKey } = crypt.loadRSAKeyPair(keyPath);
+        const tokenObj = {
+            username,
+            pubkey: publicKey
+        };
+        const tokenString = JSON.stringify(tokenObj);
+        return Buffer.from(tokenString).toString('base64');
     });
 
     // Encrypt AES key with friend's public RSA key
@@ -204,7 +216,7 @@ app.whenReady().then(() => {
 
     // Decrypt AES key with my private RSA key
     ipcMain.handle('decrypt-aes-key', async (event, { encryptedKey }) => {
-        const { privateKey } = crypt.loadRSAKeyPair();
+        const { privateKey } = crypt.loadRSAKeyPair(keyPath);
         const keyBuffer = crypt.decryptAESKeyWithRSA(encryptedKey, privateKey);
         return keyBuffer.toString('base64');
     });
