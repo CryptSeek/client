@@ -215,12 +215,84 @@
         }
 
         // Puts new messages up in the response area
-        ipcRenderer.on("message-received", (event, messageObj) => {
-            const sender = messageObj['sender'];
-            const recipient = messageObj['recipient'];
-            const content = messageObj['message'];
+        ipcRenderer.on("message-received", (event, message) => {
+            (async () => {
+                const obj = JSON.parse(message['data']);
 
-            receiveMessage(sender, recipient, content)
+                // Handle incoming AES key
+                if (obj.type === 'aes-key') {
+                    console.log("Received AES key from:", obj.from);
+
+                    const decryptedAESKey = await ipcRenderer.invoke('decrypt-aes-key', {
+                        encryptedKey: obj.payload
+                    });
+
+                    if (!decryptedAESKey) {
+                        console.warn("Failed to decrypt incoming AES key.");
+                        return;
+                    }
+
+                    const path = await ipcRenderer.invoke('get-path-sync');
+                    const fs = require('fs');
+                    const friendFolder = `${path}/data/${obj.from}`;
+
+                    if (!fs.existsSync(friendFolder)) {
+                        fs.mkdirSync(friendFolder);
+                    }
+
+                    fs.writeFileSync(`${friendFolder}/key`, decryptedAESKey);
+                    alert(`Accepted AES key from ${obj.from}! You can now chat securely.`);
+                    return;
+                }
+
+                // Handle encrypted message
+                const { identifier, payload } = obj;
+
+                let decrypted = null;
+                let sender = null;
+
+                const storedKeys = Object.keys(localStorage).filter(k => k.startsWith("key-"));
+                for (const k of storedKeys) {
+                    const keyBase64 = localStorage.getItem(k);
+                    try {
+                        decrypted = await ipcRenderer.invoke('decrypt-message', {
+                            encrypted: payload,
+                            key: keyBase64
+                        });
+
+                        const parsed = JSON.parse(decrypted);
+                        sender = parsed.sender;
+                        break;
+                    } catch (e) {
+                        // continue trying other keys
+                    }
+                }
+
+                if (!sender || !decrypted) {
+                    console.warn("Could not decrypt message or identify sender.");
+                    receiveMessage("unknown", "unknown", "[Encrypted message: unable to decrypt]");
+                    return;
+                }
+
+                const foundKeyBase64 = await ipcRenderer.invoke('find-key', {
+                    identifier,
+                    sender
+                });
+
+                if (!foundKeyBase64) {
+                    console.warn("No key found for:", identifier, "from:", sender);
+                    receiveMessage("unknown", "unknown", "[Encrypted message: unable to decrypt]");
+                    return;
+                }
+
+                const finalDecrypted = await ipcRenderer.invoke('decrypt-message', {
+                    encrypted: payload,
+                    key: foundKeyBase64
+                });
+
+                const { sender: s, recipient, message: content } = JSON.parse(finalDecrypted);
+                receiveMessage(s, recipient, content);
+            })();
         });
     </script>
     </body>

@@ -108,9 +108,15 @@
     }
 
     async function copyMyToken() {
-        const token = await ipcRenderer.invoke('get-public-key-token', { username });
-        await navigator.clipboard.writeText(token);
-        alert("Your CryptSeek token has been copied to your clipboard!");
+        try {
+            window.focus(); // 🔐 Ensure focus before clipboard access
+            const token = await ipcRenderer.invoke('get-public-key-token', { username });
+            await navigator.clipboard.writeText(token);
+            alert("Your CryptSeek token has been copied to your clipboard!");
+        } catch (err) {
+            console.error("Clipboard write failed:", err);
+            alert("Failed to copy token. Try focusing the window first.");
+        }
     }
 
     async function acceptFriendToken() {

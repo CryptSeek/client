@@ -155,6 +155,9 @@ app.whenReady().then(() => {
     ipcMain.on('send-message', handleSendMessage);
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
+    ipcMain.handle('get-path-sync', () => {
+        return app.getPath("userData");
+    });
     // Encrypt a message with AES key (returns Base64 string)
     ipcMain.handle('encrypt-message', async (event, { message, key }) => {
         try {
@@ -169,10 +172,15 @@ app.whenReady().then(() => {
 
     // Decrypt a message with AES key (input: Base64, output: UTF-8 string)
     ipcMain.handle('decrypt-message', async (event, { encrypted, key }) => {
+        if (!key) {
+            console.error("decrypt-message called with undefined key");
+            return null;
+        }
+
         try {
             const keyBuffer = Buffer.from(key, 'base64');
             const decrypted = crypt.decryptMessage(encrypted, keyBuffer);
-            return decrypted; // returns UTF-8 string
+            return decrypted;
         } catch (err) {
             console.error("Decryption failed:", err);
             return null;
