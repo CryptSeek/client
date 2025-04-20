@@ -27,48 +27,101 @@ const keys = {};
 
 // Relays messages from the subscriber to the main window
 async function handleMessageReceived(event, message) {
-    console.log(message);
+    console.log("Raw incoming message:", message);
 
-    let path = app.getPath("userData");
+    const path = app.getPath("userData");
 
     // Ensure data folder exists
     if (!fs.existsSync(`${path}/data`)) {
         fs.mkdirSync(`${path}/data`);
     }
 
-    const { payload, identifier } = JSON.parse(message);
+    let msgObj;
+    try {
+        msgObj = JSON.parse(message);
+    } catch (err) {
+        console.error("Invalid message JSON:", err);
+        return;
+    }
 
-    // Attempt Message Decryption
-    let key = keys[identifier];
-    let msgObj = JSON.parse(crypt.decryptMessage(payload, key));
+    // Skip decryption for key exchange messages
+    if (msgObj.type === 'aes-key') {
+        console.log("Received AES key message from:", msgObj.from);
 
-    console.log("messageRel: ",msgObj);
+        const messageRel = msgObj.from || "unknown";
+        const friendFolder = `${path}/data/${messageRel}`;
 
-    // Ensure friend folder exists
+        if (!fs.existsSync(friendFolder)) {
+            fs.mkdirSync(friendFolder);
+        }
+
+        fs.appendFile(`${friendFolder}/messages.jsonl`, `${message}\n`, (err) => {
+            if (err) console.error('Error writing aes-key message:', err);
+        });
+
+        // Forward to renderer so it can handle it in index.html
+        mainWindow.webContents.send('message-received', { data: message });
+        return;
+    }
+
+    // Regular encrypted message
+    const { payload, identifier } = msgObj;
+
+    if (!identifier || !payload) {
+        console.warn("Missing identifier or payload. Skipping.");
+        return;
+    }
+
+    const key = keys[identifier];
+
+    if (!key) {
+        console.warn("No key found for identifier:", identifier);
+        return;
+    }
+
+    let decrypted;
+    try {
+        decrypted = crypt.decryptMessage(payload, key);
+    } catch (err) {
+        console.error("Decryption failed:", err);
+        return;
+    }
+
+    let parsed;
+    try {
+        parsed = JSON.parse(decrypted);
+    } catch (err) {
+        console.error("Decrypted message is not valid JSON:", err);
+        return;
+    }
+
     let messageRel;
-    if (msgObj['sender'] === store.get('username')) {
-        messageRel = msgObj['recipient'];
-    }
-    else {
-        messageRel = msgObj['sender'];
-    }
-    if (!fs.existsSync(`${path}/data/${messageRel}`)) {
-        fs.mkdirSync(`${path}/data/${messageRel}`);
+    if (parsed.sender === store.get('username')) {
+        messageRel = parsed.recipient;
+    } else {
+        messageRel = parsed.sender;
     }
 
-    // Write message to data file
-    console.log(messageRel);
-    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(msgObj)}\n`, (err) => {
+    const friendFolder = `${path}/data/${messageRel}`;
+    if (!fs.existsSync(friendFolder)) {
+        fs.mkdirSync(friendFolder);
+    }
+
+    fs.appendFile(`${friendFolder}/messages.jsonl`, `${message}\n`, (err) => {
         if (err) {
-            console.log('error', err);
+            console.error("Failed to write message:", err);
         }
     });
 
-    mainWindow.webContents.send('message-received', msgObj);
+    // Forward decrypted message
+    mainWindow.webContents.send('message-received', { data: message });
 }
 
 async function handleSendMessage(event, messageObject) {
     console.log("Sending Message", messageObject);
+    if (!fs.existsSync(keyFile)) {
+        console.warn("Tried to send message but no AES key exists for:", recipient);
+    }
     let recipient = messageObject.recipient;
     const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
     if (fs.existsSync(keyFile)) {
@@ -90,14 +143,23 @@ async function handleSendMessage(event, messageObject) {
 }
 
 // Restarts the subscriber window (to accept new settings)
-function restartSubscriber(event, data) {
+function restartSubscriber() {
     subscriberWindow.webContents.reload();
+    setTimeout(() => subscriberWindow.webContents.reload(), 250);
 
-    // I don't know why it has to be this way,
-    // It really shouldn't be this way
-    // So why on gods green earth am I required to do this horribleness?!?!?!?  - wycre
-    setTimeout( () => {subscriberWindow.webContents.reload();}, 250); // 100 works on my machine
-
+    // Reload AES keys
+    const dataPath = app.getPath("userData");
+    const friends = fs.readdirSync(`${dataPath}/data`);
+    for (const friend of friends) {
+        const filePath = `${dataPath}/data/${friend}/key`;
+        if (fs.existsSync(filePath)) {
+            const key = Buffer.from(fs.readFileSync(filePath).toString(), 'base64');
+            const ident1 = generateKeyIdentifier(key, friend);
+            const ident2 = generateKeyIdentifier(key, store.get('username'));
+            keys[ident1] = key;
+            keys[ident2] = key;
+        }
+    }
 }
 
 // Tells the data path to the main window
@@ -223,9 +285,16 @@ app.whenReady().then(() => {
     });
 
     // Decrypt AES key with my private RSA key
-    ipcMain.handle('decrypt-aes-key', async (event, { encryptedKey }) => {
+    ipcMain.handle('decrypt-aes-key', async (event, { encryptedKey, sender }) => {
         const { privateKey } = crypt.loadRSAKeyPair(keyPath);
         const keyBuffer = crypt.decryptAESKeyWithRSA(encryptedKey, privateKey);
+
+        // Store in runtime key dictionary
+        const ident1 = generateKeyIdentifier(keyBuffer, sender);
+        const ident2 = generateKeyIdentifier(keyBuffer, store.get('username'));
+        keys[ident1] = keyBuffer;
+        keys[ident2] = keyBuffer;
+
         return keyBuffer.toString('base64');
     });
 

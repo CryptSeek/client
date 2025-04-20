@@ -131,7 +131,13 @@
 
             // Clear input field
             document.getElementById("message").value = '';
+
             // TODO add error checking
+            const keyFilePath = `${dataPath}/data/${recipient}/key`;
+            if (!fs.existsSync(keyFilePath)) {
+                alert("You don't have a secure key for this friend yet. Make sure they accepted your request.");
+                return;
+            }
         }
 
         function receiveMessage(sender, recipient, message) {
@@ -224,7 +230,8 @@
                     console.log("Received AES key from:", obj.from);
 
                     const decryptedAESKey = await ipcRenderer.invoke('decrypt-aes-key', {
-                        encryptedKey: obj.payload
+                        encryptedKey: obj.payload,
+                        sender: obj.from
                     });
 
                     if (!decryptedAESKey) {
