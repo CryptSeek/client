@@ -85,11 +85,13 @@ async function handleMessageReceived(event, message) {
         const keyFile = `${app.getPath("userData")}/data/${parsed["sender"]}/key`;
         fs.writeFileSync(keyFile, newKey);
 
-        let ident = generateKeyIdentifier(Buffer.from(newKey), store.get('username'));
-        keys[ident] = newKey;
+        const keyBuffer = Buffer.from(newKey);
 
-        ident = generateKeyIdentifier(Buffer.from(newKey), parsed["sender"]).toString();
-        keys[ident] = newKey;
+        let ident = generateKeyIdentifier(keyBuffer, store.get('username'));
+        keys[ident] = keyBuffer;
+
+        ident = generateKeyIdentifier(keyBuffer, parsed["sender"]).toString();
+        keys[ident] = keyBuffer;
 
         console.log(keys);
 
