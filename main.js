@@ -4,7 +4,7 @@ const Store = require("electron-store");
 const fs = require('fs');
 const path = require("node:path");
 const {generateKeyIdentifier, decryptMessage, encryptMessage} = require("./crypto/crypto");
-const keyPath = path.join(app.getPath('userData'), 'rsa_keypair.json');
+const keyPath = path.join(app.getPath('userData'), 'data/rsa_keypair.json');
 
 //////////////////
 // Global variables
@@ -228,7 +228,7 @@ app.whenReady().then(() => {
         if (recipientPubKey) {
             let encrypted = crypt.encryptWithRSA(JSON.stringify(messageObject), recipientPubKey);
             console.log("Sending Encrypted Friend Request:", encrypted);
-            let identifier = crypt.generateKeyIdentifier(recipientPubKey, recipient)
+            let identifier = crypt.generateKeyIdentifier(Buffer.from(recipientPubKey), recipient);
 
             let envelope = {
                 identifier: identifier,
@@ -246,6 +246,8 @@ app.whenReady().then(() => {
     ipcMain.handle('get-path-sync', () => {
         return app.getPath("userData");
     });
+
+
     // Encrypt a message with AES key (returns Base64 string)
     ipcMain.handle('encrypt-message', async (event, { message, key }) => {
         try {
@@ -275,11 +277,9 @@ app.whenReady().then(() => {
         }
     });
 
-    // Store key and return identifier + nonce
-    ipcMain.handle('store-key', async (event, { key, sender }) => {
-        const keyBuffer = Buffer.from(key, 'base64');
-        const { identifier } = crypt.storeKey(keyBuffer, sender);
-        return { identifier };
+    // Stores an encryption key provided by caller
+    ipcMain.handle('store-key', async (event, {key, friendName}) => {
+
     });
 
     ipcMain.handle('find-key', async (event, { identifier, sender }) => {
@@ -301,7 +301,7 @@ app.whenReady().then(() => {
             pubkey: publicKey
         };
         const tokenString = JSON.stringify(tokenObj);
-        return Buffer.from(tokenString).toString('base64');
+        return Buffer.from(tokenString).toString('utf-8');
     });
 
     // Encrypt AES key with friend's public RSA key

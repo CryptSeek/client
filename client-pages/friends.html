@@ -128,14 +128,17 @@
             const friendUsername = tokenObj.username;
             const friendPublicKey = tokenObj.pubkey;
 
-            const ownPublicKey = await ipcRenderer.invoke('get-public-key-token', { username });
+            const aesKey = crypto.getRandomValues(new Uint8Array(32));
+            const aesKeyBase64 = btoa(String.fromCharCode(...aesKey));
+
+
 
             // Encrypt full message object (sender, recipient, message)
             const messageObject = {
                 sender: username,
                 recipient: friendUsername,
                 message: "New Friend Request from " + username,
-                pubkey: ownPublicKey,
+                key: aesKeyBase64,
             };
 
             ipcRenderer.send('send-asym-message', messageObject, friendPublicKey);
@@ -150,6 +153,9 @@
             fs.appendFile(`${friendFolder}/messages.jsonl`, `${JSON.stringify(messageObject)}\n`, (err) => {
                 if (err) console.error('Error writing message to file:', err);
             });
+
+            const keyFile = `${dataPath}/data/${friendUsername}/key`;
+            fs.writeFileSync(keyFile, aesKeyBase64);
 
             alert("Friend Request Sent");
 
