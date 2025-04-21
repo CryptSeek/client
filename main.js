@@ -292,6 +292,22 @@ app.whenReady().then(() => {
     });
 
 
+    ipcMain.handle('store-aes-key', (event, key, friendName) => {
+        console.log("Storing key for", friendName);
+        console.log(key);
+
+        const keyBuffer = Buffer.from(key, 'base64');
+
+        let ident = generateKeyIdentifier(keyBuffer, store.get('username'));
+        keys[ident] = keyBuffer;
+
+        ident = generateKeyIdentifier(keyBuffer, friendName).toString();
+        keys[ident] = keyBuffer;
+
+        console.log(keys)
+    });
+
+
     // Encrypt a message with AES key (returns Base64 string)
     ipcMain.handle('encrypt-message', async (event, { message, key }) => {
         try {
@@ -302,33 +318,6 @@ app.whenReady().then(() => {
             console.error("Encryption failed:", err);
             return null;
         }
-    });
-
-    // Decrypt a message with AES key (input: Base64, output: UTF-8 string)
-    ipcMain.handle('decrypt-message', async (event, { encrypted, key }) => {
-        if (!key) {
-            console.error("decrypt-message called with undefined key");
-            return null;
-        }
-
-        try {
-            const keyBuffer = Buffer.from(key, 'base64');
-            const decrypted = crypt.decryptMessage(encrypted, keyBuffer);
-            return decrypted;
-        } catch (err) {
-            console.error("Decryption failed:", err);
-            return null;
-        }
-    });
-
-    // Stores an encryption key provided by caller
-    ipcMain.handle('store-key', async (event, {key, friendName}) => {
-
-    });
-
-    ipcMain.handle('find-key', async (event, { identifier, sender }) => {
-        const foundKey = crypt.findKey(identifier, sender);
-        return foundKey ? foundKey.toString('base64') : null;
     });
 
     // Get my encoded friend token for sharing

@@ -155,6 +155,8 @@
             const keyFile = `${dataPath}/data/${friendUsername}/key`;
             fs.writeFileSync(keyFile, aesKeyBase64);
 
+            await ipcRenderer.invoke('store-aes-key', aesKeyBase64, friendUsername);
+
             alert("Friend Request Sent");
 
         } catch (err) {
