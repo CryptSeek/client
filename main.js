@@ -4,6 +4,7 @@ const Store = require("electron-store");
 const fs = require('fs');
 const path = require("node:path");
 const {generateKeyIdentifier, decryptMessage, encryptMessage} = require("./crypto/crypto");
+const keyPath = path.join(app.getPath('userData'), 'rsa_keypair.json');
 
 //////////////////
 // Global variables
@@ -18,6 +19,7 @@ const store = new Store({
     }
 });
 
+let keyPair = {};
 const keys = {};
 
 //////////////////
@@ -26,50 +28,134 @@ const keys = {};
 
 // Relays messages from the subscriber to the main window
 async function handleMessageReceived(event, message) {
-    console.log(message);
+    console.log("Raw incoming message:", message);
 
-    let path = app.getPath("userData");
+    const path = app.getPath("userData");
 
     // Ensure data folder exists
     if (!fs.existsSync(`${path}/data`)) {
         fs.mkdirSync(`${path}/data`);
     }
 
-    const { payload, identifier } = JSON.parse(message);
-
-    // Attempt Message Decryption
-    let key = keys[identifier];
-    let msgObj = JSON.parse(crypt.decryptMessage(payload, key));
-
-    console.log("messageRel: ",msgObj);
-
-    // Ensure friend folder exists
-    let messageRel;
-    if (msgObj['sender'] === store.get('username')) {
-        messageRel = msgObj['recipient'];
+    let msgObj;
+    try {
+        msgObj = JSON.parse(message);
+    } catch (err) {
+        console.error("Invalid message JSON:", err);
+        return;
     }
+
+    // Regular encrypted message
+    const { payload, identifier } = msgObj;
+    let parsed;
+
+    if (!identifier || !payload) {
+        console.warn("Missing identifier or payload. Skipping.");
+        return;
+    }
+
+    // Check if identifier matches RSA ident
+    console.log(identifier);
+    console.log(keyPair["ident"])
+    if (identifier === keyPair["ident"]) {
+        console.log("Handling new Friend Request")
+        let decrypted;
+        try {
+            decrypted = crypt.decryptWithRSA(payload, keyPair["privateKey"]);
+        } catch (err) {
+            console.error("Decryption failed:", err);
+            return;
+        }
+
+        try {
+            parsed = JSON.parse(decrypted);
+        } catch (err) {
+            console.error("Decrypted message is not valid JSON:", err);
+            return;
+        }
+
+        const newKey = parsed["key"];
+        console.log(newKey);
+
+        const friendFolder = `${path}/data/${parsed["sender"]}`;
+        if (!fs.existsSync(friendFolder)) {
+            fs.mkdirSync(friendFolder);
+        }
+
+        const keyFile = `${app.getPath("userData")}/data/${parsed["sender"]}/key`;
+        fs.writeFileSync(keyFile, newKey);
+
+        const keyBuffer = Buffer.from(newKey, 'base64');
+
+        let ident = generateKeyIdentifier(keyBuffer, store.get('username'));
+        keys[ident] = keyBuffer;
+
+        ident = generateKeyIdentifier(keyBuffer, parsed["sender"]).toString();
+        keys[ident] = keyBuffer;
+
+        console.log(keys);
+
+    }
+
+    // AES encrypted messages
     else {
-        messageRel = msgObj['sender'];
+        const key = keys[identifier];
+
+        if (!key) {
+            console.warn("No key found for identifier:", identifier);
+            return;
+        }
+
+        let decrypted;
+        try {
+            decrypted = crypt.decryptMessage(payload, key);
+        } catch (err) {
+            console.error("Decryption failed:", err);
+            return;
+        }
+
+        try {
+            parsed = JSON.parse(decrypted);
+        } catch (err) {
+            console.error("Decrypted message is not valid JSON:", err);
+            return;
+        }
     }
-    if (!fs.existsSync(`${path}/data/${messageRel}`)) {
-        fs.mkdirSync(`${path}/data/${messageRel}`);
+
+
+    let messageRel;
+    if (parsed.sender === store.get('username')) {
+        messageRel = parsed.recipient;
+    } else {
+        messageRel = parsed.sender;
+    }
+
+    const friendFolder = `${path}/data/${messageRel}`;
+    if (!fs.existsSync(friendFolder)) {
+        fs.mkdirSync(friendFolder);
     }
 
     // Write message to data file
     console.log(messageRel);
-    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(msgObj)}\n`, (err) => {
+    fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(parsed)}\n`, (err) => {
         if (err) {
             console.log('error', err);
         }
     });
 
-    mainWindow.webContents.send('message-received', msgObj);
+    // Forward decrypted message
+    mainWindow.webContents.send('message-received', parsed);
 }
 
 async function handleSendMessage(event, messageObject) {
     console.log("Sending Message", messageObject);
     let recipient = messageObject.recipient;
     const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
+
+    if (!fs.existsSync(keyFile)) {
+        console.warn("Tried to send message but no AES key exists for:", recipient);
+    }
+
     if (fs.existsSync(keyFile)) {
         let key = Buffer.from(fs.readFileSync(keyFile).toString(), 'base64');
         let encrypted = crypt.encryptMessage(JSON.stringify(messageObject), key);
@@ -89,19 +175,36 @@ async function handleSendMessage(event, messageObject) {
 }
 
 // Restarts the subscriber window (to accept new settings)
-function restartSubscriber(event, data) {
+function restartSubscriber() {
     subscriberWindow.webContents.reload();
+    setTimeout(() => subscriberWindow.webContents.reload(), 250);
 
-    // I don't know why it has to be this way,
-    // It really shouldn't be this way
-    // So why on gods green earth am I required to do this horribleness?!?!?!?  - wycre
-    setTimeout( () => {subscriberWindow.webContents.reload();}, 250); // 100 works on my machine
-
+    // Reload AES keys
+    const dataPath = app.getPath("userData");
+    const friends = fs.readdirSync(`${dataPath}/data`);
+    for (const friend of friends) {
+        const filePath = `${dataPath}/data/${friend}/key`;
+        if (fs.existsSync(filePath)) {
+            const key = Buffer.from(fs.readFileSync(filePath).toString(), 'base64');
+            const ident1 = generateKeyIdentifier(key, friend);
+            const ident2 = generateKeyIdentifier(key, store.get('username'));
+            keys[ident1] = key;
+            keys[ident2] = key;
+        }
+    }
 }
 
 // Tells the data path to the main window
 function getPath(event) {
     mainWindow.webContents.send('path-relay', {data: app.getPath("userData")});
+}
+
+
+function getRSAKeyPair() {
+    const pair = crypt.loadRSAKeyPair(keyPath);
+    pair["publicKey"] = Buffer.from(pair["publicKey"]);
+    pair["privateKey"] = Buffer.from(pair["privateKey"]);
+    return pair;
 }
 
 //////////////////
@@ -112,6 +215,11 @@ app.whenReady().then(() => {
 
     const dataPath = app.getPath("userData");
     console.log(dataPath);
+
+    // Get asym key first
+    keyPair = getRSAKeyPair();
+    keyPair["ident"] = crypt.generateKeyIdentifier(keyPair["publicKey"], store.get('username'));
+
 
     if (fs.existsSync(`${dataPath}/data`)) {
         let friends = fs.readdirSync(`${dataPath}/data`);
@@ -128,6 +236,7 @@ app.whenReady().then(() => {
         });
     }
 
+    console.log(keyPair);
     console.log(keys)
 
 
@@ -154,6 +263,51 @@ app.whenReady().then(() => {
     ipcMain.on('send-message', handleSendMessage);
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
+
+
+    ipcMain.on('send-asym-message', async (event, messageObject, recipientPubKey) => {
+        console.log("Sending Message", messageObject);
+        let recipient = messageObject.recipient;
+
+        if (recipientPubKey) {
+            let encrypted = crypt.encryptWithRSA(JSON.stringify(messageObject), recipientPubKey);
+            console.log("Sending Encrypted Friend Request:", encrypted);
+            let identifier = crypt.generateKeyIdentifier(Buffer.from(recipientPubKey), recipient);
+
+            let envelope = {
+                identifier: identifier,
+                payload: encrypted
+            }
+
+            await fetch(store.get('bouncerAddress'), {
+                method: 'POST',
+                body: JSON.stringify(envelope),
+            })
+        }
+    });
+
+
+    ipcMain.handle('get-path-sync', () => {
+        return app.getPath("userData");
+    });
+
+
+    ipcMain.handle('store-aes-key', (event, key, friendName) => {
+        console.log("Storing key for", friendName);
+        console.log(key);
+
+        const keyBuffer = Buffer.from(key, 'base64');
+
+        let ident = generateKeyIdentifier(keyBuffer, store.get('username'));
+        keys[ident] = keyBuffer;
+
+        ident = generateKeyIdentifier(keyBuffer, friendName).toString();
+        keys[ident] = keyBuffer;
+
+        console.log(keys)
+    });
+
+
     // Encrypt a message with AES key (returns Base64 string)
     ipcMain.handle('encrypt-message', async (event, { message, key }) => {
         try {
@@ -166,47 +320,15 @@ app.whenReady().then(() => {
         }
     });
 
-    // Decrypt a message with AES key (input: Base64, output: UTF-8 string)
-    ipcMain.handle('decrypt-message', async (event, { encrypted, key }) => {
-        try {
-            const keyBuffer = Buffer.from(key, 'base64');
-            const decrypted = crypt.decryptMessage(encrypted, keyBuffer);
-            return decrypted; // returns UTF-8 string
-        } catch (err) {
-            console.error("Decryption failed:", err);
-            return null;
-        }
-    });
-
-    // Store key and return identifier + nonce
-    ipcMain.handle('store-key', async (event, { key, sender }) => {
-        const keyBuffer = Buffer.from(key, 'base64');
-        const { identifier } = crypt.storeKey(keyBuffer, sender);
-        return { identifier };
-    });
-
-    ipcMain.handle('find-key', async (event, { identifier, sender }) => {
-        const foundKey = crypt.findKey(identifier, sender);
-        return foundKey ? foundKey.toString('base64') : null;
-    });
-
-    // Get my RSA public key
-    ipcMain.handle('get-public-key', async () => {
-        const { publicKey } = crypt.loadRSAKeyPair();
-        return publicKey;
-    });
-
-    // Encrypt AES key with friend's public RSA key
-    ipcMain.handle('encrypt-aes-key', async (event, { aesKeyBase64, friendPublicKey }) => {
-        const aesKey = Buffer.from(aesKeyBase64, 'base64');
-        return crypt.encryptAESKeyWithRSA(friendPublicKey, aesKey);
-    });
-
-    // Decrypt AES key with my private RSA key
-    ipcMain.handle('decrypt-aes-key', async (event, { encryptedKey }) => {
-        const { privateKey } = crypt.loadRSAKeyPair();
-        const keyBuffer = crypt.decryptAESKeyWithRSA(encryptedKey, privateKey);
-        return keyBuffer.toString('base64');
+    // Get my encoded friend token for sharing
+    ipcMain.handle('get-public-key-token', async (event, { username }) => {
+    const { publicKey } = crypt.loadRSAKeyPair(keyPath);
+        const tokenObj = {
+            username,
+            pubkey: publicKey
+        };
+        const tokenString = JSON.stringify(tokenObj);
+        return Buffer.from(tokenString).toString('base64');
     });
 
 

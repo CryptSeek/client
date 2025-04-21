@@ -39,8 +39,10 @@
                         <div>
                             <h4>Steps:</h4>
                             <ol>
-                                <li>Receive a token from a new friend</li>
-                                <li>Paste the token here: <br><input placeholder="token" type="text"></li>
+                                <li>Ask your friend for their CryptSeek token</li>
+                                <li><button onclick="copyMyToken()">Copy My Token</button></li>
+                                <li>Paste a token here to add a friend: <br><input placeholder="Paste token here..." type="text" id="friend-token"></li>
+                                <li><button onclick="acceptFriendToken()">Add Friend</button></li>
                             </ol>
                         </div>
                     </div>
@@ -76,8 +78,7 @@
             let newUser = document.createElement('div');
             newUser.id = friend;
             newUser.classList.add('user-log');
-            newUser.innerHTML =
-                "<h3>Settings for <span>" + friend + "</span></h3>" +
+            newUser.innerHTML = "<h3>Settings for <span>" + friend + "</span></h3>" +
                 "<div>" +
                 "<button class='btn btn-warning'>Remove Friend</button>" +
                 "</div>";
@@ -104,8 +105,64 @@
             fs.rmSync(`${dataPath}/data/${friendName}`, {recursive: true});
             window.location.reload();
         }
+    }
 
+    async function copyMyToken() {
+        try {
+            window.focus();
+            const token = await ipcRenderer.invoke('get-public-key-token', { username });
+            await navigator.clipboard.writeText(token);
+            alert("Your CryptSeek token has been copied to your clipboard!");
+        } catch (err) {
+            console.error("Clipboard write failed:", err);
+            alert("Failed to copy token. Try focusing the window first.");
+        }
+    }
 
+    async function acceptFriendToken() {
+        const tokenInput = document.getElementById("friend-token").value;
+        try {
+            const tokenString = atob(tokenInput);
+            const tokenObj = JSON.parse(tokenString);
+
+            const friendUsername = tokenObj.username;
+            const friendPublicKey = tokenObj.pubkey;
+
+            const aesKey = crypto.getRandomValues(new Uint8Array(32));
+            const aesKeyBase64 = btoa(String.fromCharCode(...aesKey));
+
+            // Encrypt full message object (sender, recipient, message)
+            const messageObject = {
+                sender: username,
+                recipient: friendUsername,
+                message: "New Friend Request from " + username,
+                key: aesKeyBase64,
+            };
+
+            ipcRenderer.send('send-asym-message', messageObject, friendPublicKey);
+
+            const friendFolder = `${dataPath}/data/${friendUsername}`;
+            if (!fs.existsSync(friendFolder)) {
+                fs.mkdirSync(friendFolder);
+            }
+
+            fs.writeFileSync(`${friendFolder}/pubkey`, friendPublicKey);
+
+            fs.appendFile(`${friendFolder}/messages.jsonl`, `${JSON.stringify(messageObject)}\n`, (err) => {
+                if (err) console.error('Error writing message to file:', err);
+            });
+
+            const keyFile = `${dataPath}/data/${friendUsername}/key`;
+            fs.writeFileSync(keyFile, aesKeyBase64);
+
+            await ipcRenderer.invoke('store-aes-key', aesKeyBase64, friendUsername);
+
+            alert("Friend Request Sent");
+
+        } catch (err) {
+            console.error("Failed to parse or send friend token:", err);
+            alert("Invalid token.");
+        }
     }
 
 </script>
