@@ -109,7 +109,7 @@
 
     async function copyMyToken() {
         try {
-            window.focus(); // 🔐 Ensure focus before clipboard access
+            window.focus();
             const token = await ipcRenderer.invoke('get-public-key-token', { username });
             await navigator.clipboard.writeText(token);
             alert("Your CryptSeek token has been copied to your clipboard!");
@@ -130,8 +130,6 @@
 
             const aesKey = crypto.getRandomValues(new Uint8Array(32));
             const aesKeyBase64 = btoa(String.fromCharCode(...aesKey));
-
-
 
             // Encrypt full message object (sender, recipient, message)
             const messageObject = {
