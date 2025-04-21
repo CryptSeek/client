@@ -108,12 +108,12 @@ function loadRSAKeyPair(keyPath) {
     return { publicKey, privateKey };
 }
 
-function encryptAESKeyWithRSA(publicKey, aesKey) {
-    return crypto.publicEncrypt(publicKey, aesKey).toString('base64');
+function encryptWithRSA(message, publicKey) {
+    return crypto.publicEncrypt(publicKey, message).toString('base64');
 }
 
-function decryptAESKeyWithRSA(ciphertextB64, privateKey) {
-    const buffer = Buffer.from(ciphertextB64, 'base64');
+function decryptWithRSA(encrypted, privateKey) {
+    const buffer = Buffer.from(encrypted, 'base64');
     return crypto.privateDecrypt(privateKey, buffer);
 }
 
@@ -130,7 +130,7 @@ module.exports = {
     generateKeyIdentifier,
     generateRSAKeyPair,
     loadRSAKeyPair,
-    encryptAESKeyWithRSA,
-    decryptAESKeyWithRSA
+    encryptWithRSA,
+    decryptWithRSA
 };
 

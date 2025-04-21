@@ -128,33 +128,30 @@
             const friendUsername = tokenObj.username;
             const friendPublicKey = tokenObj.pubkey;
 
-            const aesKey = crypto.getRandomValues(new Uint8Array(32));
-            const aesKeyBase64 = btoa(String.fromCharCode(...aesKey));
+            const ownPublicKey = await ipcRenderer.invoke('get-public-key-token', { username });
 
-            const encryptedAESKey = await ipcRenderer.invoke('encrypt-aes-key', {
-                aesKeyBase64,
-                friendPublicKey
-            });
-
-            const envelope = {
-                payload: encryptedAESKey,
-                type: 'aes-key',
-                from: username,
-                to: friendUsername
+            // Encrypt full message object (sender, recipient, message)
+            const messageObject = {
+                sender: username,
+                recipient: friendUsername,
+                message: "New Friend Request from " + username,
+                pubkey: ownPublicKey,
             };
 
-            await fetch(bouncerAddress, {
-                method: "POST",
-                body: JSON.stringify(envelope)
-            });
+            ipcRenderer.send('send-asym-message', messageObject, friendPublicKey);
 
             const friendFolder = `${dataPath}/data/${friendUsername}`;
             if (!fs.existsSync(friendFolder)) {
                 fs.mkdirSync(friendFolder);
             }
 
-            fs.writeFileSync(`${friendFolder}/key`, aesKeyBase64);
-            alert("Friend added and AES key sent!");
+            fs.writeFileSync(`${friendFolder}/pubkey`, friendPublicKey);
+
+            fs.appendFile(`${friendFolder}/messages.jsonl`, `${JSON.stringify(messageObject)}\n`, (err) => {
+                if (err) console.error('Error writing message to file:', err);
+            });
+
+            alert("Friend Request Sent");
 
         } catch (err) {
             console.error("Failed to parse or send friend token:", err);

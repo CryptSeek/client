@@ -119,11 +119,13 @@ async function handleMessageReceived(event, message) {
 
 async function handleSendMessage(event, messageObject) {
     console.log("Sending Message", messageObject);
+    let recipient = messageObject.recipient;
+    const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
+
     if (!fs.existsSync(keyFile)) {
         console.warn("Tried to send message but no AES key exists for:", recipient);
     }
-    let recipient = messageObject.recipient;
-    const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
+
     if (fs.existsSync(keyFile)) {
         let key = Buffer.from(fs.readFileSync(keyFile).toString(), 'base64');
         let encrypted = crypt.encryptMessage(JSON.stringify(messageObject), key);
@@ -217,6 +219,30 @@ app.whenReady().then(() => {
     ipcMain.on('send-message', handleSendMessage);
     ipcMain.on('settings-saved', restartSubscriber);
     ipcMain.on('get-path', getPath);
+
+
+    ipcMain.on('send-asym-message', async (event, messageObject, recipientPubKey) => {
+        console.log("Sending Message", messageObject);
+        let recipient = messageObject.recipient;
+
+        if (recipientPubKey) {
+            let encrypted = crypt.encryptWithRSA(JSON.stringify(messageObject), recipientPubKey);
+            console.log("Sending Encrypted Friend Request:", encrypted);
+            let identifier = crypt.generateKeyIdentifier(recipientPubKey, recipient)
+
+            let envelope = {
+                identifier: identifier,
+                payload: encrypted
+            }
+
+            await fetch(store.get('bouncerAddress'), {
+                method: 'POST',
+                body: JSON.stringify(envelope),
+            })
+        }
+    });
+
+
     ipcMain.handle('get-path-sync', () => {
         return app.getPath("userData");
     });
