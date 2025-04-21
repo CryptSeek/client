@@ -77,14 +77,21 @@ async function handleMessageReceived(event, message) {
         const newKey = parsed["key"];
         console.log(newKey);
 
+        const friendFolder = `${path}/data/${parsed["sender"]}`;
+        if (!fs.existsSync(friendFolder)) {
+            fs.mkdirSync(friendFolder);
+        }
+
         const keyFile = `${app.getPath("userData")}/data/${parsed["sender"]}/key`;
         fs.writeFileSync(keyFile, newKey);
 
-        let ident = generateKeyIdentifier(newKey, store.get('username'));
+        let ident = generateKeyIdentifier(Buffer.from(newKey), store.get('username'));
         keys[ident] = newKey;
 
-        ident = generateKeyIdentifier(newKey, parsed["sender"]).toString();
+        ident = generateKeyIdentifier(Buffer.from(newKey), parsed["sender"]).toString();
         keys[ident] = newKey;
+
+        console.log(keys);
 
     }
 
