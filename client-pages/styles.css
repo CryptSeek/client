@@ -9,7 +9,15 @@
     overflow: hidden;
 }
 
-/* styles */
+#cs-add-friend {
+    display: none;
+    padding-top: 20px;
+}
+
+#cs-add-friend:target {
+    display: block;
+}
+
 body {
     background-color: #222;
     font-family: sans-serif;
