@@ -66,6 +66,8 @@
     const { ipcRenderer } = require("electron");
     const Store = require('electron-store');
     const fs = require('fs');
+    const Dialogs = require('dialogs');
+    const dialogs = Dialogs();
 
     // DOM objects for showing messages
     const logArea = document.getElementById('message-log');
@@ -106,10 +108,10 @@
         ipcRenderer.send('get-path');
     }
 
-    function removeFriend(event) {
+    async function removeFriend(event) {
         console.log(event.target);
         let friendName = event.target.parentNode.parentNode.id;
-        if (confirm("Are you sure you want to remove this friend\nThis cannot be undone!")) {
+        if (await dialogs.confirm("Are you sure you want to remove this friend\nThis cannot be undone!")) {
             fs.rmSync(`${dataPath}/data/${friendName}`, {recursive: true});
             window.location.reload();
         }
@@ -120,10 +122,10 @@
             window.focus();
             const token = await ipcRenderer.invoke('get-public-key-token', { username });
             await navigator.clipboard.writeText(token);
-            alert("Your CryptSeek token has been copied to your clipboard!");
+            dialogs.alert("Copied!")  // TODO change this to a subtle DOM modification
         } catch (err) {
             console.error("Clipboard write failed:", err);
-            alert("Failed to copy token. Try focusing the window first.");
+            dialogs.alert("Failed to copy token, please try again");
         }
     }
 
@@ -165,20 +167,20 @@
 
             await ipcRenderer.invoke('store-aes-key', aesKeyBase64, friendUsername);
 
-            alert("Friend Request Sent");
+            dialogs.alert("Friend Request Sent");
 
         } catch (err) {
             console.error("Failed to parse or send friend token:", err);
-            alert("Invalid token.");
+            dialogs.alert("Invalid Friend Token")
         }
     }
 
     document.getElementById("reset-rsa-btn").addEventListener("click", async () => {
-        const confirmReset = confirm("Are you sure? Resetting your RSA key will prevent old friends from messaging you.");
+        const confirmReset = await dialogs.confirm("Resetting your Friend Token will invalidate your old Friend Token\nThis Cannot Be Undone");
         if (!confirmReset) return;
 
         const newPublicKey = await ipcRenderer.invoke("reset-rsa-keypair");
-        alert("New RSA key pair generated! Be sure to send your updated token to your friends.");
+        dialogs.alert("New Friend Token Generated")
     });
 
 </script>

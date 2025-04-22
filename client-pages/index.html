@@ -70,6 +70,8 @@
         const { ipcRenderer } = require("electron");
         const Store = require('electron-store');
         const fs = require('fs');
+        const Dialogs = require('dialogs');
+        const dialogs = Dialogs();
 
         // DOM objects for showing messages
         const logArea = document.getElementById('message-log');
@@ -135,8 +137,7 @@
             // TODO add error checking
             const keyFilePath = `${dataPath}/data/${recipient}/key`;
             if (!fs.existsSync(keyFilePath)) {
-                alert("You don't have a secure key for this friend yet. Make sure they accepted your request.");
-                return;
+                dialogs.alert("You don't have a secure key for this friend yet. Make sure they accepted your request.")
             }
         }
 
