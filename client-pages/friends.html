@@ -57,7 +57,7 @@
                                 </ol>
                                 <button class="btn btn-primary" onclick="copyMyToken()">Copy My Token</button>
                                 <button id="reset-rsa-btn" class="btn btn-warning" style="margin-top: 1em;">Reset My Friend Token</button>
-                                <p id="copy-status" style="margin-top: 0.5em; color: green;"></p>
+                                <p id="copy-status" class="blend-in-info">Token copied to clipboard!</p>
                             </div>
                         </div>
                     </div>
@@ -128,14 +128,17 @@
             window.focus();
             const token = await ipcRenderer.invoke('get-public-key-token', { username });
             await navigator.clipboard.writeText(token);
-            status.innerText = "Token copied to clipboard!";
-            status.style.color = "green";
-            setTimeout(() => { status.innerText = ""; }, 3000);
+            status.classList.remove('blend-in-info');
+            setTimeout(() => { status.classList.add('blend-in-info'); }, 3000);
         } catch (err) {
             console.error("Clipboard write failed:", err);
             status.innerText = "Failed to copy token.";
-            status.style.color = "red";
-            setTimeout(() => { status.innerText = ""; }, 3000);
+            status.classList.add('fail');
+            setTimeout(() => {
+                status.innerText = "Token copied to clipboard!";
+                status.classList.add('blend-in-info');
+                status.classList.remove('fail');
+                }, 3000);
         }
     }
 
