@@ -21,6 +21,13 @@
             </div>
         </div>
 
+        <div class="info-box">
+            <h3>Blocked Users</h3>
+            <ul id="blocked-users-list">
+                <!-- Filled dynamically -->
+            </ul>
+        </div>
+
         <div class="main-content">
             <nav class="top-nav">
                 <img src="./logo.png" style="width: 200px; text-align: left;"
@@ -43,6 +50,7 @@
                                 <li><button onclick="copyMyToken()">Copy My Token</button></li>
                                 <li>Paste a token here to add a friend: <br><input placeholder="Paste token here..." type="text" id="friend-token"></li>
                                 <li><button onclick="acceptFriendToken()">Add Friend</button></li>
+                                <button id="reset-rsa-btn" class="btn btn-danger" style="margin-top: 1em;">Reset My RSA Key Pair</button>
                             </ol>
                         </div>
                     </div>
@@ -164,6 +172,14 @@
             alert("Invalid token.");
         }
     }
+
+    document.getElementById("reset-rsa-btn").addEventListener("click", async () => {
+        const confirmReset = confirm("Are you sure? Resetting your RSA key will prevent old friends from messaging you.");
+        if (!confirmReset) return;
+
+        const newPublicKey = await ipcRenderer.invoke("reset-rsa-keypair");
+        alert("New RSA key pair generated! Be sure to send your updated token to your friends.");
+    });
 
 </script>
 
