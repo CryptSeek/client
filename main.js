@@ -11,6 +11,7 @@ const keyPath = path.join(app.getPath('userData'), 'rsa_keypair.json');
 //////////////////
 let mainWindow, subscriberWindow;
 let tray = null;
+let killRequest = false;  // Informs the close override to let the app close or not
 
 const store = new Store({
     defaults: {
@@ -239,21 +240,27 @@ app.whenReady().then(() => {
     console.log(keyPair);
     console.log(keys)
 
-
-
     // Initialize system tray
     tray = new Tray('tray-logo.png');
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'CryptSeek is running' },
+        { label: 'Open CryptSeek', type: 'normal', click: () => {
+                if (!mainWindow.visible) { mainWindow.show(); }
+            }},
         { label: 'Options', type: 'separator' },
         { label: 'Stop CryptSeek', type: 'normal', click: () => {
                 subscriberWindow.close();
-                if (!mainWindow?.isDestroyed() && mainWindow?.isFocusable()) { mainWindow.close(); }
+                if (!mainWindow?.isDestroyed() && mainWindow?.isFocusable()) {
+                    killRequest = true;  // Inform the close override to let the app close
+                    mainWindow.close();
+                }
             }
         },
     ]);
     tray.setToolTip('CryptSeek');
     tray.setContextMenu(contextMenu);
+    tray.on('click', (event) => {
+        if (!mainWindow.visible) { mainWindow.show(); }
+    });
 
 
 
@@ -374,6 +381,15 @@ app.whenReady().then(() => {
             contextIsolation: false
         }
     });
+
+    // Override closing
+    mainWindow.on('close', (event) => {
+        if (!killRequest) {
+            event.preventDefault();
+            mainWindow.hide();
+        }
+    });
+
     mainWindow.setMenu(null);
     mainWindow.webContents.openDevTools();
     mainWindow.loadFile("client-pages/index.html");

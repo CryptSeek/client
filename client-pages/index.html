@@ -28,20 +28,12 @@
                     <img src="./logo.png" style="width: 200px; text-align: left;"
                         alt="CryptSeek Logo">
                     <div style="text-align: right;">
-                        <a class="top-nav-item" href="friends.html">Friends</a>
+                        <a class="top-nav-item" href="friends.html#cs-add-friend">Friends</a>
                         <a class="top-nav-item" href="settings.html">Settings</a>
                     </div>
                 </nav>
 
                 <div class="message-content-area">
-                    <!-- Debug Box -->
-                    <div class="info-box">
-                        <h3 style="margin: 5px 0 15px 0; text-align: center;">Debug Field Area</h3>
-                        <label for="recipient">Recipient: </label>
-                        <input type="text" id="recipient"
-                            placeholder="Username of recipient">
-                    </div>
-
                     <div id="message-log">
                         <!-- Generate areas based on received message senders -->
                     </div>
@@ -70,6 +62,8 @@
         const { ipcRenderer } = require("electron");
         const Store = require('electron-store');
         const fs = require('fs');
+        const Dialogs = require('dialogs');
+        const dialogs = Dialogs();
 
         // DOM objects for showing messages
         const logArea = document.getElementById('message-log');
@@ -135,8 +129,7 @@
             // TODO add error checking
             const keyFilePath = `${dataPath}/data/${recipient}/key`;
             if (!fs.existsSync(keyFilePath)) {
-                alert("You don't have a secure key for this friend yet. Make sure they accepted your request.");
-                return;
+                dialogs.alert("You don't have a secure key for this friend yet. Make sure they accepted your request.")
             }
         }
 

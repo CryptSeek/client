@@ -11,6 +11,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "dialogs": "^2.0.1",
     "electron-store": "^8.2.0",
     "zeromq": "^6.3.0"
   },
