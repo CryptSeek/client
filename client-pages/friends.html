@@ -47,11 +47,14 @@
                             <h4>Steps:</h4>
                             <ol>
                                 <li>Ask your friend for their CryptSeek token</li>
-                                <li><button onclick="copyMyToken()">Copy My Token</button></li>
-                                <li>Paste a token here to add a friend: <br><input placeholder="Paste token here..." type="text" id="friend-token"></li>
-                                <li><button onclick="acceptFriendToken()">Add Friend</button></li>
-                                <button id="reset-rsa-btn" class="btn btn-danger" style="margin-top: 1em;">Reset My RSA Key Pair</button>
+                                <li>Paste a token here to add a friend: <br>
+                                    <label for="friend-token" hidden>Friend Token</label>
+                                    <input placeholder="Paste token here..." type="text" id="friend-token">
+                                </li>
+                                <li style="margin-top: 5px;"><button class="btn btn-primary" onclick="acceptFriendToken()">Add Friend With Token</button></li>
                             </ol>
+                            <button class="btn btn-primary" onclick="copyMyToken()">Copy My Token</button>
+                            <button id="reset-rsa-btn" class="btn btn-warning" style="margin-top: 1em;">Reset My Friend Token</button>
                         </div>
                     </div>
                     <!-- Generate areas based on received message senders -->
