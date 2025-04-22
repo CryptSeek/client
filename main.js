@@ -336,7 +336,16 @@ app.whenReady().then(() => {
         if (fs.existsSync(keyPath)) {
             fs.unlinkSync(keyPath);
         }
-        const keyPair = crypt.generateRSAKeyPair(keyPath);
+
+        // Generate and persist new key pair
+        const newKeyPair = crypt.generateRSAKeyPair(keyPath);
+
+        // Update the global keyPair object in memory
+        keyPair = {
+            ...newKeyPair,
+            ident: crypt.generateKeyIdentifier(newKeyPair.publicKey, store.get('username'))
+        };
+
         console.log("RSA keypair regenerated:", keyPair);
         return keyPair.publicKey.toString('base64');
     });
