@@ -343,7 +343,7 @@ app.whenReady().then(() => {
         // Update the global keyPair object in memory
         keyPair = {
             ...newKeyPair,
-            ident: crypt.generateKeyIdentifier(newKeyPair.publicKey, store.get('username'))
+            ident: crypt.generateKeyIdentifier(Buffer.from(newKeyPair.publicKey), store.get('username'))
         };
 
         console.log("RSA keypair regenerated:", keyPair);
