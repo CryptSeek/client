@@ -331,6 +331,25 @@ app.whenReady().then(() => {
         return Buffer.from(tokenString).toString('base64');
     });
 
+    // Reset and regenerate RSA key pair
+    ipcMain.handle('reset-rsa-keypair', async () => {
+        if (fs.existsSync(keyPath)) {
+            fs.unlinkSync(keyPath);
+        }
+
+        // Generate and persist new key pair
+        const newKeyPair = crypt.generateRSAKeyPair(keyPath);
+
+        // Update the global keyPair object in memory
+        keyPair = {
+            ...newKeyPair,
+            ident: crypt.generateKeyIdentifier(Buffer.from(newKeyPair.publicKey), store.get('username'))
+        };
+
+        console.log("RSA keypair regenerated:", keyPair);
+        return keyPair.publicKey.toString('base64');
+    });
+
 
     // Create subscriber window
     subscriberWindow = new BrowserWindow({
