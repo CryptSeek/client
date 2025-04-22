@@ -57,6 +57,7 @@
                                 </ol>
                                 <button class="btn btn-primary" onclick="copyMyToken()">Copy My Token</button>
                                 <button id="reset-rsa-btn" class="btn btn-warning" style="margin-top: 1em;">Reset My Friend Token</button>
+                                <p id="copy-status" style="margin-top: 0.5em; color: green;"></p>
                             </div>
                         </div>
                     </div>
@@ -69,11 +70,9 @@
 </body>
 
 <script>
-    const { ipcRenderer } = require("electron");
+    const { ipcRenderer, clipboard } = require("electron");
     const Store = require('electron-store');
     const fs = require('fs');
-    const Dialogs = require('dialogs');
-    const dialogs = Dialogs();
 
     // DOM objects for showing messages
     const logArea = document.getElementById('message-log');
@@ -124,14 +123,19 @@
     }
 
     async function copyMyToken() {
+        const status = document.getElementById("copy-status");
         try {
             window.focus();
             const token = await ipcRenderer.invoke('get-public-key-token', { username });
             await navigator.clipboard.writeText(token);
-            dialogs.alert("Copied!")  // TODO change this to a subtle DOM modification
+            status.innerText = "Token copied to clipboard!";
+            status.style.color = "green";
+            setTimeout(() => { status.innerText = ""; }, 3000);
         } catch (err) {
             console.error("Clipboard write failed:", err);
-            dialogs.alert("Failed to copy token, please try again");
+            status.innerText = "Failed to copy token.";
+            status.style.color = "red";
+            setTimeout(() => { status.innerText = ""; }, 3000);
         }
     }
 
