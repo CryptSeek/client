@@ -151,7 +151,7 @@ async function handleMessageReceived(event, message) {
 
     console.log(friendStatus);
     // Write Accept message if Friend
-    if (friendStatus === 3 || friendStatus === 1 || friendStatus === 0) {
+    if (friendStatus === 3 || friendStatus === 1 || friendStatus === 0 || parsed['sender'] === store.get('username')) {
         console.log(messageRel);
         fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(parsed)}\n`, (err) => {
             if (err) {
