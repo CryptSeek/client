@@ -97,7 +97,8 @@
                                 const sender = obj['sender'];
                                 const recipient = obj['recipient'];
                                 const content = obj['message'];
-                                receiveMessage(sender, recipient, content)
+                                const key = obj['key'];
+                                receiveMessage(sender, recipient, content, key)
                             } catch {
                                 console.log('error processing data: ' + message.toString());
                             }
@@ -133,7 +134,7 @@
             }
         }
 
-        function receiveMessage(sender, recipient, message) {
+        function receiveMessage(sender, recipient, message, newRequest) {
 
             console.log("Processing message from:" + sender + " to " + recipient);
 
@@ -200,10 +201,54 @@
             innerP.innerText = message;
 
             newMessage.appendChild(innerP);
-            if (convo.children[1].firstChild) {
+
+            // Add options for friend request
+            if (newRequest) {
+                const acceptButton = document.createElement('button');
+                const blockButton = document.createElement('button');
+
+                acceptButton.id = `accept-${sender}`;
+                blockButton.id = `block-${sender}`;
+
+                acceptButton.innerText = "Accept";
+                blockButton.innerText = "Block";
+
+                acceptButton.classList.add('btn', 'btn-green');
+                blockButton.classList.add('btn', 'btn-warning');
+
+                acceptButton.onclick = (event) => {
+                    const name = event.target.id.split('-')[1];
+                    const statusFile = `${dataPath}/data/${name}/status`;
+                    fs.writeFileSync(statusFile, JSON.stringify({status: 3}));
+
+                    const messageFile = `${dataPath}/data/${name}/messages.jsonl`;
+                    const request = JSON.parse(fs.readFileSync(messageFile).toString());
+                    request['key'] = false;
+                    fs.writeFileSync(messageFile, JSON.stringify(request));
+
+                    event.target.nextSibling.remove();
+                    event.target.remove();
+                }
+
+                blockButton.addEventListener('click', (event) => {
+                    const name = event.target.id.split('-')[1];
+                    const statusFile = `${dataPath}/data/${name}/status`;
+                    fs.writeFileSync(statusFile, JSON.stringify({status: 4}));
+
+                    const messageFile = `${dataPath}/data/${name}/messages.jsonl`;
+                    fs.truncateSync(messageFile, 0);
+
+                    event.target.parentNode.remove();
+                });
+
+                newMessage.appendChild(acceptButton);
+                newMessage.appendChild(blockButton);
+            }
+
+            if (convo.children[1].firstChild) {  // Existing messages
                 convo.children[1].insertBefore(newMessage, convo.children[1].firstChild);
             }
-            else {
+            else {  // new convo
                 convo.children[1].appendChild(newMessage);
             }
 
@@ -218,8 +263,9 @@
             const sender = messageObj['sender'];
             const recipient = messageObj['recipient'];
             const content = messageObj['message'];
+            const key = messageObj['key'];
 
-            receiveMessage(sender, recipient, content)
+            receiveMessage(sender, recipient, content, key)
         });
     </script>
     </body>

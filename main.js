@@ -149,9 +149,22 @@ async function handleMessageReceived(event, message) {
         friendStatus = 0;
     }
 
+    // Friend Status Values
+    // 0 - Unknown (Accepted)
+    // 1 - Pending State 1
+    // 2 - Pending State 2
+    // 3 - Accepted
+    // 4 - Blocked
+
     console.log(friendStatus);
     // Write Accept message if Friend
     if (friendStatus === 3 || friendStatus === 1 || friendStatus === 0 || parsed['sender'] === store.get('username')) {
+
+        if (parsed['sender'] === store.get('username')) {
+            parsed['key'] = false;
+        }
+
+
         console.log(messageRel);
         fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(parsed)}\n`, (err) => {
             if (err) {
