@@ -203,7 +203,7 @@
             newMessage.appendChild(innerP);
 
             // Add options for friend request
-            if (newRequest) {
+            if (newRequest && sender !== username) {
                 const acceptButton = document.createElement('button');
                 const blockButton = document.createElement('button');
 
