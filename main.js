@@ -141,8 +141,14 @@ async function handleMessageReceived(event, message) {
     }
 
     // Check Friend Status
+    let friendStatus;
     const statusFile = `${app.getPath("userData")}/data/${messageRel}/status`;
-    const friendStatus = fs.readFileSync(statusFile).toString('utf8');
+    try {
+        friendStatus = fs.readFileSync(statusFile).toString('utf8');
+    } catch (err) {
+        friendStatus = 'unknown';
+    }
+
 
     // Write Accept message if Friend
     if (friendStatus === "accepted" || friendStatus === "pending" || messageRel === store.get('username')) {
