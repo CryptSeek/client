@@ -29,7 +29,7 @@ const keys = {};
 
 // Relays messages from the subscriber to the main window
 async function handleMessageReceived(event, message) {
-    console.log("Raw incoming message:", message);
+    //console.log("Raw incoming message:", message);
 
     const path = app.getPath("userData");
 
@@ -56,10 +56,10 @@ async function handleMessageReceived(event, message) {
     }
 
     // Check if identifier matches RSA ident
-    console.log(identifier);
-    console.log(keyPair["ident"])
+    //console.log(identifier);
+    //console.log(keyPair["ident"])
     if (identifier === keyPair["ident"]) {
-        console.log("Handling new Friend Request")
+        //console.log("Handling new Friend Request")
         let decrypted;
         try {
             decrypted = crypt.decryptWithRSA(payload, keyPair["privateKey"]);
@@ -76,7 +76,7 @@ async function handleMessageReceived(event, message) {
         }
 
         const newKey = parsed["key"];
-        console.log(newKey);
+        //console.log(newKey);
 
         const friendFolder = `${path}/data/${parsed["sender"]}`;
         if (!fs.existsSync(friendFolder)) {
@@ -98,7 +98,7 @@ async function handleMessageReceived(event, message) {
         ident = generateKeyIdentifier(keyBuffer, parsed["sender"]).toString();
         keys[ident] = keyBuffer;
 
-        console.log(keys);
+        //console.log(keys);
 
     }
 
@@ -156,7 +156,7 @@ async function handleMessageReceived(event, message) {
     // 3 - Accepted
     // 4 - Blocked
 
-    console.log(friendStatus);
+    //console.log(friendStatus);
     // Write Accept message if Friend
     if (friendStatus === 3 || friendStatus === 1 || friendStatus === 0 || parsed['sender'] === store.get('username')) {
 
@@ -165,10 +165,10 @@ async function handleMessageReceived(event, message) {
         }
 
 
-        console.log(messageRel);
+        //console.log(messageRel);
         fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(parsed)}\n`, (err) => {
             if (err) {
-                console.log('error', err);
+                //console.log('error', err);
             }
         });
 
@@ -184,12 +184,12 @@ async function handleMessageReceived(event, message) {
         mainWindow.webContents.send('message-received', parsed);
     }
     else if (friendStatus === 4) {
-        console.log("Blocked message from " + messageRel)
+        //console.log("Blocked message from " + messageRel)
     }
 }
 
 async function handleSendMessage(event, messageObject) {
-    console.log("Sending Message", messageObject);
+    //console.log("Sending Message", messageObject);
     let recipient = messageObject.recipient;
     const keyFile = `${app.getPath("userData")}/data/${recipient}/key`;
 
@@ -200,7 +200,7 @@ async function handleSendMessage(event, messageObject) {
     if (fs.existsSync(keyFile)) {
         let key = Buffer.from(fs.readFileSync(keyFile).toString(), 'base64');
         let encrypted = crypt.encryptMessage(JSON.stringify(messageObject), key);
-        console.log(encrypted);
+        //console.log(encrypted);
         let identifier = crypt.generateKeyIdentifier(key, recipient)
 
         let envelope = {
@@ -255,7 +255,7 @@ app.whenReady().then(() => {
     Store.initRenderer();
 
     const dataPath = app.getPath("userData");
-    console.log(dataPath);
+    //console.log(dataPath);
 
     // Get asym key first
     keyPair = getRSAKeyPair();
@@ -277,8 +277,8 @@ app.whenReady().then(() => {
         });
     }
 
-    console.log(keyPair);
-    console.log(keys)
+    //console.log(keyPair);
+    //console.log(keys)
 
     // Initialize system tray
     tray = new Tray('tray-logo.png');
@@ -313,12 +313,12 @@ app.whenReady().then(() => {
 
 
     ipcMain.on('send-asym-message', async (event, messageObject, recipientPubKey) => {
-        console.log("Sending Message", messageObject);
+        //console.log("Sending Message", messageObject);
         let recipient = messageObject.recipient;
 
         if (recipientPubKey) {
             let encrypted = crypt.encryptWithRSA(JSON.stringify(messageObject), recipientPubKey);
-            console.log("Sending Encrypted Friend Request:", encrypted);
+            //console.log("Sending Encrypted Friend Request:", encrypted);
             let identifier = crypt.generateKeyIdentifier(Buffer.from(recipientPubKey), recipient);
 
             let envelope = {
@@ -340,8 +340,8 @@ app.whenReady().then(() => {
 
 
     ipcMain.handle('store-aes-key', (event, key, friendName) => {
-        console.log("Storing key for", friendName);
-        console.log(key);
+        //console.log("Storing key for", friendName);
+        //console.log(key);
 
         const keyBuffer = Buffer.from(key, 'base64');
 
@@ -351,7 +351,7 @@ app.whenReady().then(() => {
         ident = generateKeyIdentifier(keyBuffer, friendName).toString();
         keys[ident] = keyBuffer;
 
-        console.log(keys)
+        //console.log(keys)
     });
 
 
@@ -393,7 +393,7 @@ app.whenReady().then(() => {
             ident: crypt.generateKeyIdentifier(Buffer.from(newKeyPair.publicKey), store.get('username'))
         };
 
-        console.log("RSA keypair regenerated:", keyPair);
+        //console.log("RSA keypair regenerated:", keyPair);
         return keyPair.publicKey.toString('base64');
     });
 
@@ -431,6 +431,6 @@ app.whenReady().then(() => {
     });
 
     mainWindow.setMenu(null);
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
     mainWindow.loadFile("client-pages/index.html");
 });

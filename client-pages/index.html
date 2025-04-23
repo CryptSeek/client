@@ -224,7 +224,7 @@
                     const messageFile = `${dataPath}/data/${name}/messages.jsonl`;
                     const request = JSON.parse(fs.readFileSync(messageFile).toString());
                     request['key'] = false;
-                    fs.writeFileSync(messageFile, JSON.stringify(request));
+                    fs.writeFileSync(messageFile, JSON.stringify(request) + "\n");
 
                     event.target.nextSibling.remove();
                     event.target.remove();
