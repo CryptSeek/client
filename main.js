@@ -86,6 +86,7 @@ async function handleMessageReceived(event, message) {
         const keyFile = `${app.getPath("userData")}/data/${parsed["sender"]}/key`;
         fs.writeFileSync(keyFile, newKey);
 
+        // Set request status
         const statusFile = `${app.getPath("userData")}/data/${parsed["sender"]}/status`;
         fs.writeFileSync(statusFile, "pending");
 
@@ -144,7 +145,7 @@ async function handleMessageReceived(event, message) {
     const friendStatus = fs.readFileSync(statusFile).toString('utf8');
 
     // Write Accept message if Friend
-    if (friendStatus === "accepted") {
+    if (friendStatus === "accepted" || friendStatus === "pending" || messageRel === store.get('username')) {
         console.log(messageRel);
         fs.appendFile(`${path}/data/${messageRel}/messages.jsonl`, `${JSON.stringify(parsed)}\n`, (err) => {
             if (err) {
@@ -154,8 +155,12 @@ async function handleMessageReceived(event, message) {
 
         // Forward decrypted message
         mainWindow.webContents.send('message-received', parsed);
+
+        if (friendStatus === "pending") {
+            fs.writeFileSync(statusFile, 'pending1');
+        }
     }
-    else if (friendStatus === "pending") {
+    else if (friendStatus === "pending1") {
         parsed["message"] = "Blocked message from unconfirmed friend";
         mainWindow.webContents.send('message-received', parsed);
     }

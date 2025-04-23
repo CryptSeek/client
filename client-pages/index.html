@@ -109,7 +109,7 @@
 
         // This function sends messages to the bouncer
         async function sendMessage() {
-            let recipient = document.querySelector("#recipient").value || location.href.split('#')[1];
+            let recipient = document.querySelector("#recipient")?.value || location.href.split('#')[1];
             if (!recipient) return;
 
             const plaintext = document.getElementById("message").value;
