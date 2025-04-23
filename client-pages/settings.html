@@ -46,6 +46,8 @@
             const Store = require('electron-store');
             const { ipcRenderer } = require("electron");
             const fs = require('fs');
+            const Dialogs = require('dialogs');
+            const dialogs = Dialogs();
 
             const bouncerAddress = document.getElementById('bouncer-address');
             const gatewayAddress = document.getElementById('gateway-address');
@@ -88,7 +90,7 @@
 
             delMessages.addEventListener('click', () => {
 
-                if (window.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
+                if (dialogs.confirm("This will delete ALL received messages!\nAre you sure you want to do this\nThis action cannot be undone")) {
                     let friends = fs.readdirSync(`${dataPath}/data`);
                     friends.forEach((friendPath) => {
                         fs.rmdirSync(`${dataPath}/data/${friendPath}`, {recursive: true});

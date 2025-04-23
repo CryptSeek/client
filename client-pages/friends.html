@@ -73,6 +73,8 @@
     const { ipcRenderer, clipboard } = require("electron");
     const Store = require('electron-store');
     const fs = require('fs');
+    const Dialogs = require('dialogs');
+    const dialogs = Dialogs();
 
     // DOM objects for showing messages
     const logArea = document.getElementById('message-log');
