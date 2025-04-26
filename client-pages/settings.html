@@ -7,39 +7,39 @@
         <link rel="stylesheet" href="./styles.css">
     </head>
     <body>
-        <div class="settings">
-            <!-- Navbar -->
-            <nav class="top-nav">
-                <img src="./logo.png" style="width: 200px; text-align: left;"
-                    alt="CryptSeek Logo">
-                <div style="text-align: right;">
-                    <a class="top-nav-item" href="index.html">Home</a>
-                    <a class="top-nav-item" href="friends.html#cs-add-friend">Friends</a>
-                </div>
-            </nav>
 
-            <!-- Settings Box -->
-            <div class="info-box">
-                <h2 style="margin: 5px 0 15px 0; text-align: center;">Settings</h2>
-                <h3>Address Settings</h3>
-                <label for="bouncer-address">Bouncer Address:</label>
-                <input type="text" id="bouncer-address" value>
-                <p></p>
-                <label for="gateway-address">Gateway Address:</label>
-                <input type="text" id="gateway-address" value>
-                <p>
-                    <sup>* If you don't receive messages, make sure your gateway
-                        address is correct.
-                    </sup>
-                </p>
-                <h3 style="margin-top: 40px;">Account Settings</h3>
-                <label for="username">Username:</label>
-                <input type="text" id="username" value>
-                <p></p>
-                <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
-
-                <button id="del-messages" class="btn btn-warning" style="margin-top: 40px;">Delete Saved Messages</button>
+        <!-- Navbar -->
+        <nav class="top-nav">
+            <img src="./logo.png" style="width: 200px; text-align: left;"
+                alt="CryptSeek Logo">
+            <div style="text-align: right;">
+                <a class="top-nav-item" style="margin-right: 10px;" href="index.html">Home</a>
+                <a class="top-nav-item" style="margin-right: 10px;" href="friends.html#cs-add-friend">Friends</a>
+                <a class="top-nav-item" style="margin-right: 10px;" href="about.html">About</a>
             </div>
+        </nav>
+
+        <!-- Settings Box -->
+        <div class="info-box">
+            <h2 style="margin: 5px 0 15px 0; text-align: center;">Settings</h2>
+            <h3>Address Settings</h3>
+            <label for="bouncer-address">Bouncer Address:</label>
+            <input type="text" id="bouncer-address" value>
+            <p></p>
+            <label for="gateway-address">Gateway Address:</label>
+            <input type="text" id="gateway-address" value>
+            <p>
+                <sup>* If you don't receive messages, make sure your gateway
+                    address is correct.
+                </sup>
+            </p>
+            <h3 style="margin-top: 40px;">Account Settings</h3>
+            <label for="username">Username:</label>
+            <input type="text" id="username" value>
+            <p></p>
+            <button id="save" class="btn btn-primary" style="margin-top: 40px;">Save Settings</button>
+
+            <button id="del-messages" class="btn btn-warning" style="margin-top: 40px;">Delete Saved Messages</button>
         </div>
 
         <script>
