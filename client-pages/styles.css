@@ -178,6 +178,10 @@ input {
     position: relative;
 }
 
+.hidden {
+    display: none !important;
+}
+
 #message-input-area > input {
     flex-grow: 1;
     margin-right: 5px;

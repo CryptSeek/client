@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <div id="message-input-area" style="display: none;">
+                <div id="message-input-area" class="hidden">
                     <label for="message"></label><input id="message" type="text" placeholder="Enter a message">
                     <button id="send-message-button" class="btn btn-primary" onclick="sendMessage()">Send</button>
                 </div>
@@ -286,9 +286,9 @@
             const friend = location.hash.substring(1);
             const chatArea = document.getElementById('message-input-area');
             if (friend) {
-                chatArea.style.display = 'block';
+                chatArea.classList.remove('hidden');
             } else {
-                chatArea.style.display = 'none';
+                chatArea.classList.add('hidden');
             }
         });
 
@@ -308,10 +308,8 @@
             const searchContainer = document.getElementById('search-container');
 
             if (friend) {
-                chatArea.style.display = 'block';
                 searchContainer.style.display = 'none'; // Hide search bar when a conversation is selected
             } else {
-                chatArea.style.display = 'none';
                 searchContainer.style.display = 'block'; // Show search bar again on landing page
             }
         });
