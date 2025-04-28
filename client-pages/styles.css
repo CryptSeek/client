@@ -161,8 +161,15 @@ input {
     margin: 0;
 }
 
-.message-log > li:hover {
+.message-log > li > p {
     background-color: #444;
+    padding: 0.5em;
+    border-radius: 5px 12px;
+    border: 1px solid #444;
+}
+
+.message-log > li > p:hover {
+    border: 1px solid lime;
 }
 
 .own-message > p {
