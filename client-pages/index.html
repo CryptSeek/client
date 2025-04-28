@@ -10,6 +10,8 @@
 
     <body>
         <div class="body-flex">
+
+
             <!-- Sidebar -->
             <div class="sidebar">
                 <h2>My Messages</h2>
@@ -36,11 +38,21 @@
 
                 <div class="message-content-area">
                     <div id="message-log">
+                        <!-- Search Bar -->
+                        <div id="search-container" style="margin-top: 20px;">
+                            <div class="info-box">
+                                <h3>Find a Conversation:</h3>
+                                <div style="margin-top: 10px;">
+                                    <label for="friend-search">Search Username:</label><br>
+                                    <input id="friend-search" type="text" placeholder="Type a username..." style="width: 90%; margin-top: 5px;">
+                                </div>
+                            </div>
+                        </div>
                         <!-- Generate areas based on received message senders -->
                     </div>
                 </div>
 
-                <div id="message-input-area">
+                <div id="message-input-area" style="display: none;">
                     <label for="message"></label><input id="message" type="text" placeholder="Enter a message">
                     <button id="send-message-button" class="btn btn-primary" onclick="sendMessage()">Send</button>
                 </div>
@@ -267,6 +279,41 @@
             const key = messageObj['key'];
 
             receiveMessage(sender, recipient, content, key)
+        });
+
+        // Show/Hide chatbox when a friend is selected
+        window.addEventListener('hashchange', () => {
+            const friend = location.hash.substring(1);
+            const chatArea = document.getElementById('message-input-area');
+            if (friend) {
+                chatArea.style.display = 'block';
+            } else {
+                chatArea.style.display = 'none';
+            }
+        });
+
+        // Friend search bar with filtering function
+        document.getElementById('friend-search').addEventListener('input', function() {
+            const search = this.value.toLowerCase();
+            Array.from(userList.children).forEach(child => {
+                const friendName = child.innerText.toLowerCase();
+                child.style.display = friendName.includes(search) ? '' : 'none';
+            });
+        });
+
+        // Show/Hide search bar when a conversation is selected
+        window.addEventListener('hashchange', () => {
+            const friend = location.hash.substring(1);
+            const chatArea = document.getElementById('message-input-area');
+            const searchContainer = document.getElementById('search-container');
+
+            if (friend) {
+                chatArea.style.display = 'block';
+                searchContainer.style.display = 'none'; // Hide search bar when a conversation is selected
+            } else {
+                chatArea.style.display = 'none';
+                searchContainer.style.display = 'block'; // Show search bar again on landing page
+            }
         });
     </script>
     </body>
