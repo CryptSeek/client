@@ -431,6 +431,6 @@ app.whenReady().then(() => {
     });
 
     mainWindow.setMenu(null);
-    //mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
     mainWindow.loadFile("client-pages/index.html");
 });

@@ -1,0 +1,81 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.8 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.8">
+  <diagram name="Page-1" id="FjkO5mLhg4fAtaqMhKbU">
+    <mxGraphModel dx="1195" dy="1748" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bjhE600XtcUmsouz5cZb-7" value="&lt;font color=&quot;#33ff33&quot; style=&quot;font-size: 17px;&quot;&gt;Step 1&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bjhE600XtcUmsouz5cZb-1" target="bjhE600XtcUmsouz5cZb-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="138" />
+              <mxPoint x="718" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-1" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Alice&lt;/font&gt;" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Personal_Computer.svg;" vertex="1" parent="1">
+          <mxGeometry x="90" y="50" width="95.92" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-15" value="&lt;font color=&quot;#66ff66&quot; style=&quot;font-size: 17px;&quot;&gt;Step 2&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1">
+          <mxGeometry x="-0.7813" relative="1" as="geometry">
+            <mxPoint x="720" y="210" as="sourcePoint" />
+            <mxPoint x="140" y="210" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="720" y="420" />
+              <mxPoint x="140" y="420" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-2" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Bob&lt;/font&gt;" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Personal_Computer.svg;" vertex="1" parent="1">
+          <mxGeometry x="670" y="50" width="95.92" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-4" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;CryptSeek Server&lt;/font&gt;" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Server_Desktop.svg;" vertex="1" parent="1">
+          <mxGeometry x="374" y="350" width="102.56" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-8" value="username: Alice&lt;div&gt;pubkey: ............&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-9" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="bjhE600XtcUmsouz5cZb-8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="180" as="sourcePoint" />
+            <mxPoint x="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-10" value="First step sent through&amp;nbsp;&lt;div&gt;pre-established trusted channel&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="330" y="-50" width="190" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-13" value="Encrypted (pubkey Alice)" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="476.56" y="160" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-12" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;from:&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;Bob&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;to:&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;Alice&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;message: New Friend Request&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;key:&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ..................&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="bjhE600XtcUmsouz5cZb-13">
+          <mxGeometry x="10.000000000000057" y="60" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-19" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(251, 251, 251); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;identifier:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: initial; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;e3327a109d39538e&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="bjhE600XtcUmsouz5cZb-13">
+          <mxGeometry x="10" y="30" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-16" value="" style="endArrow=none;dashed=1;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="676.56" y="220" as="sourcePoint" />
+            <mxPoint x="716.56" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-17" value="New symmetric key generated,&lt;div&gt;encrypted with Alice&#39;s pubkey,&lt;/div&gt;&lt;div&gt;and sent to CryptSeek&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="500" y="300" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-20" value="" style="curved=1;endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="bjhE600XtcUmsouz5cZb-19">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="250" as="sourcePoint" />
+            <mxPoint x="476.56" y="200" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="476.56" y="250" />
+              <mxPoint x="426.56" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bjhE600XtcUmsouz5cZb-22" value="The identifier is derived from Alice&#39;s pubkey and username" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="250" y="230" width="160" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
